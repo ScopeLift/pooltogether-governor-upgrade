@@ -44,6 +44,6 @@ contract Deploy is Script {
     vm.startBroadcast(PROPOSER);
     _proposalId = propose(_newGovernor);
     vm.stopBroadcast();
-	return _proposalId
+	return _proposalId;
   }
 }
