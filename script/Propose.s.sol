@@ -5,12 +5,13 @@ import {Script} from "forge-std/Script.sol";
 import {ICompoundTimelock} from
   "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
 
-import {PooltogetherGovernor} from "src/GitcoinGovernor.sol";
+import {PooltogetherGovernor} from "src/PooltogetherGovernor.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 
 contract Deploy is Script {
   // GovernorAlpha
-  IGovernorAlpha constant GOVERNOR_ALPA = IGovernorAlpha(0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0);
+  IGovernorAlpha constant GOVERNOR_ALPHA =
+    IGovernorAlpha(0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0);
   // Proposer
   address constant PROPOSER = 0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27; // lonser.eth
 
