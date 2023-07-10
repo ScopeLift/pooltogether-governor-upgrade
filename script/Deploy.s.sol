@@ -1,9 +1,23 @@
-// SPDX-License-Identifier: UNLICENSED
-
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.18;
 
-import "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
+import {DeployInput} from "script/DeployInput.sol";
+import {PooltogetherGovernor} from "src/PooltogetherGovernor.sol";
 
-contract Deploy is Script {
-  function run() public {}
+contract Deploy is DeployInput, Script {
+  uint256 deployerPrivateKey;
+
+  function setUp() public {
+    deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+  }
+
+  function run() public returns (PooltogetherGovernor) {
+    vm.startBroadcast(deployerPrivateKey);
+    PooltogetherGovernor _governor =
+    new PooltogetherGovernor(INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD);
+    vm.stopBroadcast();
+
+    return _governor;
+  }
 }
