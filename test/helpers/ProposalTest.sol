@@ -115,4 +115,42 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     _jumpPastProposalEta();
     governorAlpha.execute(upgradeProposalId);
   }
+
+  function _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+    address[] memory _targets,
+    uint256[] memory _values,
+    string[] memory _signatures,
+    bytes[] memory _calldatas,
+    bool isGovernorAlphaAdmin
+  ) internal {
+    // Submit the new proposal
+    vm.prank(PROPOSER);
+    uint256 _newProposalId =
+      governorAlpha.propose(_targets, _values, _signatures, _calldatas, "Proposal for old Governor");
+
+    // Pass and execute the new proposal
+    (,,, uint256 _startBlock, uint256 _endBlock,,,,) = governorAlpha.proposals(_newProposalId);
+    vm.roll(_startBlock + 1);
+    for (uint256 _index = 0; _index < delegates.length; _index++) {
+      vm.prank(delegates[_index].addr);
+      governorAlpha.castVote(_newProposalId, true);
+    }
+    vm.roll(_endBlock + 1);
+
+    if (!isGovernorAlphaAdmin) {
+      vm.expectRevert("Timelock::queueTransaction: Call must come from admin.");
+      governorAlpha.queue(_newProposalId);
+      return;
+    }
+
+    governorAlpha.queue(_newProposalId);
+    vm.roll(block.number + 1);
+    (,, uint256 _eta,,,,,,) = governorAlpha.proposals(_newProposalId);
+    vm.warp(_eta + 1);
+
+    governorAlpha.execute(_newProposalId);
+
+    // Ensure the new proposal is now executed
+    assertEq(governorAlpha.state(_newProposalId), EXECUTED);
+  }
 }
