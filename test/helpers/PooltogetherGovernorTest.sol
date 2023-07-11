@@ -60,6 +60,4 @@ abstract contract PooltogetherGovernorTest is Test, DeployInput {
     _deployScript.setUp();
     governorBravo = _deployScript.run();
   }
-
-  function _useDeployedGovernorBravo() internal virtual returns (bool);
 }
