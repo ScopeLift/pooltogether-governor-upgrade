@@ -83,6 +83,16 @@ contract PooltogetherGovernor is
     return Governor.propose(targets, values, calldatas, description);
   }
 
+  /// @dev We override this function for it to show up in our scopelint spec
+  function castVoteWithReasonAndParams(
+    uint256 proposalId,
+    uint8 support,
+    string calldata reason,
+    bytes memory params
+  ) public override(Governor, IGovernor) returns (uint256) {
+    return Governor.castVoteWithReasonAndParams(proposalId, support, reason, params);
+  }
+
   /// @dev We override this function to resolve ambiguity between inherited contracts.
   function castVoteWithReasonAndParamsBySig(
     uint256 proposalId,
