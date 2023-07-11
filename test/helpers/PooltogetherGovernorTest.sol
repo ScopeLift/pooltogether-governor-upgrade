@@ -17,6 +17,7 @@ abstract contract PooltogetherGovernorTest is Test, DeployInput {
   IPOOL poolToken = IPOOL(POOL_TOKEN);
   address constant TIMELOCK = 0x42cd8312D2BCe04277dD5161832460e95b24262E;
   address constant PROPOSER = 0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27; // lonser.eth
+  uint256 constant MAX_REASONABLE_TIME_PERIOD = 302_400; // 6 weeks assuming a 12 second block time
 
   struct Delegate {
     string handle;
