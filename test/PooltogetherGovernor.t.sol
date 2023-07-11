@@ -27,7 +27,7 @@ abstract contract BravoGovernorDeployTest is PooltogetherGovernorTest {
 //
 // Constructor should handle this and we should have use deployed
 // as a flag.
-contract is BravoGovernorDeployTest {
+contract BravoGovernorDeployTestWithBravoDeployedByScript is BravoGovernorDeployTest {
   function _useDeployedGovernorBravo() internal pure override returns (bool) {
     return false;
   }
