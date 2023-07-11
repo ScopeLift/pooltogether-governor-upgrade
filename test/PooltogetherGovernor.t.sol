@@ -11,7 +11,7 @@ abstract contract BravoGovernorDeployTest is PooltogetherGovernorTest {
     //   0xDbD27635A534A3d3169Ef0498beB56Fb9c937489
     assertEq(INITIAL_VOTING_DELAY, 1);
     assertEq(INITIAL_VOTING_PERIOD, 28_800);
-    assertEq(INITIAL_PROPOSAL_THRESHOLD, 1_000e18);
+    assertEq(INITIAL_PROPOSAL_THRESHOLD, 1000e18);
     // forgefmt: disable-end
     assertEq(governorBravo.votingDelay(), INITIAL_VOTING_DELAY);
     assertEq(governorBravo.votingPeriod(), INITIAL_VOTING_PERIOD);
