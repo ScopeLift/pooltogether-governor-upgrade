@@ -2,8 +2,8 @@
 pragma solidity ^0.8.18;
 
 contract DeployInput {
-  // These are based on the current values for Governor Alpha
-  uint256 constant INITIAL_VOTING_DELAY = 1;
+  // TODO Reach out to Pooltogether and update these numbers based on what they want.
+  uint256 constant INITIAL_VOTING_DELAY = 3600; // 12 hours
   uint256 constant INITIAL_VOTING_PERIOD = 28_800;
   uint256 constant INITIAL_PROPOSAL_THRESHOLD = 1000e18;
 }
