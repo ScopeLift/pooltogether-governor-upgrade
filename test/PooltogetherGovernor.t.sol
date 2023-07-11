@@ -22,7 +22,12 @@ abstract contract BravoGovernorDeployTest is PooltogetherGovernorTest {
   }
 }
 
-contract BravoGovernorDeployTestWithBravoDeployedByScript is BravoGovernorDeployTest {
+// TODO: Should we make this work better with scopelint. Wrap the
+// inherited methods?
+//
+// Constructor should handle this and we should have use deployed
+// as a flag.
+contract is BravoGovernorDeployTest {
   function _useDeployedGovernorBravo() internal pure override returns (bool) {
     return false;
   }
