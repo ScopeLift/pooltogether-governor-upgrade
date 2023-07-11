@@ -8,7 +8,7 @@ abstract contract BravoGovernorDeployTest is PooltogetherGovernorTest {
     assertEq(governorBravo.name(), "Pooltogether Governor Bravo");
     assertEq(address(governorBravo.token()), POOL_TOKEN);
     // These values were all copied directly from the mainnet alpha governor at:
-    //   0xDbD27635A534A3d3169Ef0498beB56Fb9c937489
+    // 0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0
     assertEq(INITIAL_VOTING_DELAY, 1);
     assertEq(INITIAL_VOTING_PERIOD, 28_800);
     assertEq(INITIAL_PROPOSAL_THRESHOLD, 1000e18);
