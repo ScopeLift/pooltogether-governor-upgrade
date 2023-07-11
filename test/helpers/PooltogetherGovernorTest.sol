@@ -8,16 +8,12 @@ import {Deploy} from "script/Deploy.s.sol";
 import {DeployInput} from "script/DeployInput.sol";
 import {IPOOL} from "src/interfaces/IPOOL.sol";
 import {PooltogetherGovernor} from "src/PooltogetherGovernor.sol";
+import {Constants} from "test/Constants.sol";
 
-abstract contract PooltogetherGovernorTest is Test, DeployInput {
+abstract contract PooltogetherGovernorTest is Test, DeployInput, Constants {
   using FixedPointMathLib for uint256;
 
-  uint256 constant QUORUM = 100_000e18;
-  address constant POOL_TOKEN = 0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e;
   IPOOL poolToken = IPOOL(POOL_TOKEN);
-  address constant TIMELOCK = 0x42cd8312D2BCe04277dD5161832460e95b24262E;
-  address constant PROPOSER = 0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27; // lonser.eth
-  uint256 constant MAX_REASONABLE_TIME_PERIOD = 302_400; // 6 weeks assuming a 12 second block time
 
   struct Delegate {
     string handle;
