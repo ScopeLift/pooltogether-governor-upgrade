@@ -27,7 +27,6 @@ interface IPOOL {
     bytes32 r,
     bytes32 s
   ) external;
-  function delegateOnDist(address delegator, address delegatee) external;
   function delegates(address) external view returns (address);
   function getCurrentVotes(address account) external view returns (uint96);
   function getPriorVotes(address account, uint256 blockNumber) external view returns (uint96);
