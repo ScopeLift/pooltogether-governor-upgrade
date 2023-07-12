@@ -45,9 +45,9 @@ abstract contract AlphaProposalTest is PooltogetherGovernorTest {
       // proposals can cause tokens to be sent *from* the timelock to somewhere
       // else.
       _receiver != TIMELOCK
-      // We also can't have the receiver be the zero address because GTC
-      // blocks transfers to the zero address -- see line 546:
-      // https://etherscan.io/address/0xDe30da39c46104798bB5aA3fe8B9e0e1F348163F#code
+      // We also can't have the receiver be the zero address because POOL
+      // blocks transfers to the zero address -- see line 329:
+      // https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code
       && _receiver > address(0)
     );
     assumeNoPrecompiles(_receiver);
