@@ -9,7 +9,7 @@ import {Propose} from "script/Propose.s.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 import {PooltogetherGovernorTest} from "test/helpers/PooltogetherGovernorTest.sol";
 
-abstract contract AlphaProposalTest is PooltogetherGovernorTest {
+abstract contract ProposalTest is PooltogetherGovernorTest {
   //----------------- State and Setup ----------- //
 
   IGovernorAlpha governorAlpha = IGovernorAlpha(GOVERNOR_ALPHA);

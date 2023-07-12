@@ -4,7 +4,7 @@ pragma solidity ^0.8.18;
 import {IPOOL} from "src/interfaces/IPOOL.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 import {PooltogetherGovernorTest} from "test/helpers/PooltogetherGovernorTest.sol";
-import {AlphaProposalTest} from "test/helpers/ProposalTest.sol";
+import {ProposalTest} from "test/helpers/ProposalTest.sol";
 
 contract Constructor is PooltogetherGovernorTest {
   function testFuzz_CorrectlySetsAllConstructorArgs(uint256 _blockNumber) public {
@@ -25,7 +25,7 @@ contract Constructor is PooltogetherGovernorTest {
   }
 }
 
-contract Propose is AlphaProposalTest {
+contract Propose is ProposalTest {
   function test_Proposal() public {
     // Proposal has been recorded
     assertEq(governorAlpha.proposalCount(), initialProposalCount + 1);
