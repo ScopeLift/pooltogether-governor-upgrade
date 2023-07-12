@@ -47,15 +47,15 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
       _receiver != TIMELOCK
       // We also can't have the receiver be the zero address because POOL
       // blocks transfers to the zero address -- see line 329:
-      // https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code
+      // https://etherscan.io/address/0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e#code
       && _receiver > address(0)
     );
     assumeNoPrecompiles(_receiver);
   }
 
   function _randomERC20Token(uint256 _seed) internal view returns (IERC20 _token) {
-    if (_seed % 3 == 0) _token = IERC20(POOL_TOKEN);
-    if (_seed % 3 == 1) _token = usdcToken;
+    if (_seed % 2 == 0) _token = IERC20(POOL_TOKEN);
+    if (_seed % 2 == 1) _token = usdcToken;
   }
 
   function _upgradeProposalStartBlock() internal view returns (uint256) {
