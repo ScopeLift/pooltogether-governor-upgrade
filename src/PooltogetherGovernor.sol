@@ -40,7 +40,7 @@ contract PooltogetherGovernor is
   /// threshold.
   ///
   /// TODO: placeholder
-  uint256 private constant QUORUM = 2_500_000e18; // 2,500,000 POOL
+  uint256 private constant QUORUM = 100000e18; // 100,000 POOL
 
   /// @param _initialVotingDelay The deployment value for the voting delay this Governor will
   /// enforce.

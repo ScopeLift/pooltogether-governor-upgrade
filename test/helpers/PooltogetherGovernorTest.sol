@@ -12,7 +12,7 @@ import {PooltogetherGovernor} from "src/PooltogetherGovernor.sol";
 abstract contract PooltogetherGovernorTest is Test, DeployInput {
   using FixedPointMathLib for uint256;
 
-  uint256 constant QUORUM = 2_500_000e18;
+  uint256 constant QUORUM = 100000e18;
   address constant POOL_TOKEN = 0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e;
   IPOOL poolToken = IPOOL(POOL_TOKEN);
   address constant TIMELOCK = 0x42cd8312D2BCe04277dD5161832460e95b24262E;
