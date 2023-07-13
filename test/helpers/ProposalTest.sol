@@ -246,6 +246,40 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     assertEq(_state, IGovernor.ProposalState.Pending);
   }
 
+  function _submitProposal(
+    address target,
+    uint256 value,
+    bytes memory data,
+    string memory description
+  )
+    internal
+    returns (
+      uint256 _newProposalId,
+      address[] memory _targets,
+      uint256[] memory _values,
+      bytes[] memory _calldata,
+      string memory _description
+    )
+  {
+    // Craft a new proposal to send _token.
+    _targets = new address[](1);
+    _values = new uint256[](1);
+    _calldata = new bytes[](1);
+
+    _targets[0] = target;
+    _values[0] = value;
+    _calldata[0] = data;
+    _description = description;
+
+    // Submit the new proposal
+    vm.prank(PROPOSER);
+    _newProposalId = governorBravo.propose(_targets, _values, _calldata, _description);
+
+    // Ensure proposal is in the expected state
+    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
+    assertEq(_state, IGovernor.ProposalState.Pending);
+  }
+
   // Take a proposal through its full lifecycle, from proposing it, to voting on
   // it, to queuing it, to executing it (if relevant) via GovernorBravo.
   function _queueAndVoteAndExecuteProposalWithBravoGovernor(

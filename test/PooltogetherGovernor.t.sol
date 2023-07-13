@@ -8,6 +8,7 @@ import {IPOOL} from "src/interfaces/IPOOL.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 import {PooltogetherGovernorTest} from "test/helpers/PooltogetherGovernorTest.sol";
 import {ProposalTest} from "test/helpers/ProposalTest.sol";
+import {IV4PooltogetherTokenFaucet} from "test/interfaces/IV4PooltogetherTokenFaucet.sol";
 
 contract Constructor is PooltogetherGovernorTest {
   function testFuzz_CorrectlySetsAllConstructorArgs(uint256 _blockNumber) public {
@@ -901,5 +902,288 @@ contract Propose is ProposalTest {
     );
     vm.expectRevert("Timelock::queueTransaction: Call must come from admin.");
     governorAlpha.queue(_vars.alphaProposalId);
+  }
+}
+
+contract CastVoteWithReasonAndParams is ProposalTest {
+  using FixedPointMathLib for uint256;
+
+  // Store the id of a new proposal unrelated to governor upgrade.
+  uint256 newProposalId;
+
+  event VoteCastWithParams(
+    address indexed voter,
+    uint256 proposalId,
+    uint8 support,
+    uint256 weight,
+    string reason,
+    bytes params
+  );
+
+  function setUp() public virtual override(ProposalTest) {
+    ProposalTest.setUp();
+
+    _upgradeToBravoGovernor();
+
+    (newProposalId,,,,) = _submitTokenSendProposalToGovernorBravo(
+      address(DAI_ADDRESS),
+      IERC20(DAI_ADDRESS).balanceOf(TIMELOCK),
+      makeAddr("receiver for FlexVoting tests")
+    );
+
+    _jumpToActiveProposal(newProposalId);
+  }
+
+  function testFuzz_GovernorBravoSupportsCastingSplitVotes(
+    uint256 _forVotePercentage,
+    uint256 _againstVotePercentage,
+    uint256 _abstainVotePercentage
+  ) public {
+    _forVotePercentage = bound(_forVotePercentage, 0.0e18, 1.0e18);
+    _againstVotePercentage = bound(_againstVotePercentage, 0.0e18, 1.0e18 - _forVotePercentage);
+    _abstainVotePercentage =
+      bound(_abstainVotePercentage, 0.0e18, 1.0e18 - _forVotePercentage - _againstVotePercentage);
+
+    // Attempt to split vote weight on this new proposal.
+    uint256 _votingSnapshot = governorBravo.proposalSnapshot(newProposalId);
+    uint256 _totalForVotes;
+    uint256 _totalAgainstVotes;
+    uint256 _totalAbstainVotes;
+    for (uint256 _i; _i < delegates.length; _i++) {
+      address _voter = delegates[_i].addr;
+      uint256 _weight = IPOOL(POOL_TOKEN).getPriorVotes(_voter, _votingSnapshot);
+
+      uint128 _forVotes = uint128(_weight.mulWadDown(_forVotePercentage));
+      uint128 _againstVotes = uint128(_weight.mulWadDown(_againstVotePercentage));
+      uint128 _abstainVotes = uint128(_weight.mulWadDown(_abstainVotePercentage));
+      bytes memory _fractionalizedVotes = abi.encodePacked(_againstVotes, _forVotes, _abstainVotes);
+      _totalForVotes += _forVotes;
+      _totalAgainstVotes += _againstVotes;
+      _totalAbstainVotes += _abstainVotes;
+
+      // The accepted support types for Bravo fall within [0,2].
+      uint8 _supportTypeDoesntMatterForFlexVoting = uint8(bound(_i, 0, 2));
+
+      vm.expectEmit(true, true, true, true);
+      emit VoteCastWithParams(
+        _voter,
+        newProposalId,
+        _supportTypeDoesntMatterForFlexVoting, // Really: support type is ignored.
+        _weight,
+        "I do what I want",
+        _fractionalizedVotes
+      );
+
+      // This call should succeed.
+      vm.prank(_voter);
+      governorBravo.castVoteWithReasonAndParams(
+        newProposalId,
+        _supportTypeDoesntMatterForFlexVoting,
+        "I do what I want",
+        _fractionalizedVotes
+      );
+    }
+
+    // Ensure the votes were split.
+    (uint256 _actualAgainstVotes, uint256 _actualForVotes, uint256 _actualAbstainVotes) =
+      governorBravo.proposalVotes(newProposalId);
+    assertEq(_totalForVotes, _actualForVotes);
+    assertEq(_totalAgainstVotes, _actualAgainstVotes);
+    assertEq(_totalAbstainVotes, _actualAbstainVotes);
+  }
+
+  struct VoteData {
+    uint128 forVotes;
+    uint128 againstVotes;
+    uint128 abstainVotes;
+  }
+
+  function testFuzz_GovernorBravoSupportsCastingPartialSplitVotes(
+    uint256 _firstVotePercentage,
+    uint256 _forVotePercentage,
+    uint256 _againstVotePercentage,
+    uint256 _abstainVotePercentage
+  ) public {
+    // This is the % of total weight that will be cast the first time.
+    _firstVotePercentage = bound(_firstVotePercentage, 0.1e18, 0.9e18);
+
+    _forVotePercentage = bound(_forVotePercentage, 0.0e18, 1.0e18);
+    _againstVotePercentage = bound(_againstVotePercentage, 0.0e18, 1.0e18 - _forVotePercentage);
+    _abstainVotePercentage =
+      bound(_abstainVotePercentage, 0.0e18, 1.0e18 - _forVotePercentage - _againstVotePercentage);
+
+    uint256 _weight = IPOOL(POOL_TOKEN).getPriorVotes(
+      PROPOSER, // The proposer is also the top delegate.
+      governorBravo.proposalSnapshot(newProposalId)
+    );
+
+    // The accepted support types for Bravo fall within [0,2].
+    uint8 _supportTypeDoesntMatterForFlexVoting = uint8(2);
+
+    // Cast partial vote the first time.
+    VoteData memory _firstVote;
+    uint256 _voteWeight = _weight.mulWadDown(_firstVotePercentage);
+    _firstVote.forVotes = uint128(_voteWeight.mulWadDown(_forVotePercentage));
+    _firstVote.againstVotes = uint128(_voteWeight.mulWadDown(_againstVotePercentage));
+    _firstVote.abstainVotes = uint128(_voteWeight.mulWadDown(_abstainVotePercentage));
+    vm.prank(PROPOSER);
+    governorBravo.castVoteWithReasonAndParams(
+      newProposalId,
+      _supportTypeDoesntMatterForFlexVoting,
+      "My first vote",
+      abi.encodePacked(_firstVote.againstVotes, _firstVote.forVotes, _firstVote.abstainVotes)
+    );
+
+    ( // Ensure the votes were recorded.
+    uint256 _againstVotesCast, uint256 _forVotesCast, uint256 _abstainVotesCast) =
+      governorBravo.proposalVotes(newProposalId);
+    assertEq(_firstVote.forVotes, _forVotesCast);
+    assertEq(_firstVote.againstVotes, _againstVotesCast);
+    assertEq(_firstVote.abstainVotes, _abstainVotesCast);
+
+    // Cast partial vote the second time.
+    VoteData memory _secondVote;
+    _voteWeight = _weight.mulWadDown(1e18 - _firstVotePercentage);
+    _secondVote.forVotes = uint128(_voteWeight.mulWadDown(_forVotePercentage));
+    _secondVote.againstVotes = uint128(_voteWeight.mulWadDown(_againstVotePercentage));
+    _secondVote.abstainVotes = uint128(_voteWeight.mulWadDown(_abstainVotePercentage));
+    vm.prank(PROPOSER);
+    governorBravo.castVoteWithReasonAndParams(
+      newProposalId,
+      _supportTypeDoesntMatterForFlexVoting,
+      "My second vote",
+      abi.encodePacked(_secondVote.againstVotes, _secondVote.forVotes, _secondVote.abstainVotes)
+    );
+
+    ( // Ensure the new votes were recorded.
+    _againstVotesCast, _forVotesCast, _abstainVotesCast) =
+      governorBravo.proposalVotes(newProposalId);
+    assertEq(_firstVote.forVotes + _secondVote.forVotes, _forVotesCast);
+    assertEq(_firstVote.againstVotes + _secondVote.againstVotes, _againstVotesCast);
+    assertEq(_firstVote.abstainVotes + _secondVote.abstainVotes, _abstainVotesCast);
+
+    // Confirm nominal votes can co-exist with partial+fractional votes by
+    // voting with the second largest delegate.
+    uint256 _nominalVoterWeight = IPOOL(POOL_TOKEN).getPriorVotes(
+      delegates[1].addr, governorBravo.proposalSnapshot(newProposalId)
+    );
+    vm.prank(delegates[1].addr);
+    governorBravo.castVote(newProposalId, FOR);
+
+    ( // Ensure the nominal votes were recorded.
+    _againstVotesCast, _forVotesCast, _abstainVotesCast) =
+      governorBravo.proposalVotes(newProposalId);
+    assertEq(_firstVote.forVotes + _secondVote.forVotes + _nominalVoterWeight, _forVotesCast);
+    assertEq(_firstVote.againstVotes + _secondVote.againstVotes, _againstVotesCast);
+    assertEq(_firstVote.abstainVotes + _secondVote.abstainVotes, _abstainVotesCast);
+  }
+
+  function testFuzz_ProposalsCanBePassedWithSplitVotes(
+    uint256 _forVotePercentage,
+    uint256 _againstVotePercentage,
+    uint256 _abstainVotePercentage
+  ) public {
+    _forVotePercentage = bound(_forVotePercentage, 0.0e18, 1.0e18);
+    _againstVotePercentage = bound(_againstVotePercentage, 0.0e18, 1.0e18 - _forVotePercentage);
+    _abstainVotePercentage =
+      bound(_abstainVotePercentage, 0.0e18, 1.0e18 - _forVotePercentage - _againstVotePercentage);
+
+    uint256 _weight = IPOOL(POOL_TOKEN).getPriorVotes(
+      PROPOSER, // The proposer is also the top delegate.
+      governorBravo.proposalSnapshot(newProposalId)
+    );
+
+    uint128 _forVotes = uint128(_weight.mulWadDown(_forVotePercentage));
+    uint128 _againstVotes = uint128(_weight.mulWadDown(_againstVotePercentage));
+    uint128 _abstainVotes = uint128(_weight.mulWadDown(_abstainVotePercentage));
+
+    // The accepted support types for Bravo fall within [0,2].
+    uint8 _supportTypeDoesntMatterForFlexVoting = uint8(2);
+
+    vm.prank(PROPOSER);
+    governorBravo.castVoteWithReasonAndParams(
+      newProposalId,
+      _supportTypeDoesntMatterForFlexVoting,
+      "My vote",
+      abi.encodePacked(_againstVotes, _forVotes, _abstainVotes)
+    );
+
+    ( // Ensure the votes were split.
+    uint256 _actualAgainstVotes, uint256 _actualForVotes, uint256 _actualAbstainVotes) =
+      governorBravo.proposalVotes(newProposalId);
+    assertEq(_forVotes, _actualForVotes);
+    assertEq(_againstVotes, _actualAgainstVotes);
+    assertEq(_abstainVotes, _actualAbstainVotes);
+
+    _jumpToVotingComplete(newProposalId);
+
+    IGovernor.ProposalState _state = governorBravo.state(newProposalId);
+
+    if (_forVotes >= governorBravo.quorum(block.number) && _forVotes > _againstVotes) {
+      assertEq(_state, IGovernor.ProposalState.Succeeded);
+    } else {
+      assertEq(_state, IGovernor.ProposalState.Defeated);
+    }
+  }
+}
+
+// 0x26369c51553b869af716ed726feac8041c471b97789daf86f8488c0341944d51 sunsetting pools proposal
+// Update the drip rate https://vote.pooltogether.com/proposals/23
+
+contract _Execute is ProposalTest {
+  function setUp() public virtual override(ProposalTest) {
+    ProposalTest.setUp();
+
+    _upgradeToBravoGovernor();
+  }
+
+  function testFuzz_updateV4DripRate(uint256 newDrip) public {
+    // Drip must be greater than 0
+    vm.assume(newDrip > 0);
+
+    IV4PooltogetherTokenFaucet tokenFaucet = IV4PooltogetherTokenFaucet(V4_TOKEN_FAUCET);
+    uint256 oldDrip = tokenFaucet.dripRatePerSecond();
+    assertEq(oldDrip, 5_787_037_037_037_037, "Old value is not correct");
+
+    (
+      uint256 _newProposalId,
+      address[] memory _targets,
+      uint256[] memory _values,
+      bytes[] memory _calldatas,
+      string memory _description
+    ) = _submitProposal(
+      V4_TOKEN_FAUCET,
+      0,
+      abi.encodeWithSignature("setDripRatePerSecond(uint256)", newDrip),
+      "This proposal reduces the USDC drip rate by 50% from 1,000 POOL per day to 500. This constitutes a 22% drop in total daily emissions."
+    );
+    _jumpToActiveProposal(_newProposalId);
+
+    // Delegates vote with a mix of For/Against/Abstain with For winning.
+    vm.prank(delegates[0].addr);
+    governorBravo.castVote(_newProposalId, FOR);
+    vm.prank(delegates[1].addr);
+    governorBravo.castVote(_newProposalId, FOR);
+
+    _jumpToVotingComplete(_newProposalId);
+
+    // Ensure the proposal has succeeded
+    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
+    assertEq(_state, IGovernor.ProposalState.Succeeded);
+
+    // Queue the proposal
+    governorBravo.queue(_targets, _values, _calldatas, keccak256(bytes(_description)));
+
+    _jumpPastProposalEta(_newProposalId);
+
+    // Execute the proposal
+    governorBravo.execute(_targets, _values, _calldatas, keccak256(bytes(_description)));
+
+    // Ensure the proposal is executed
+    _state = governorBravo.state(_newProposalId);
+    assertEq(_state, IGovernor.ProposalState.Executed);
+
+    // Assert that the drip has been changed
+    assertEq(newDrip, tokenFaucet.dripRatePerSecond(), "New value is not correct");
   }
 }
