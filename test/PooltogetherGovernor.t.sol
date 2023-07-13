@@ -905,7 +905,7 @@ contract Propose is ProposalTest {
   }
 }
 
-contract CastVoteWithReasonAndParams is AlphaProposalTest {
+contract CastVoteWithReasonAndParams is ProposalTest {
   using FixedPointMathLib for uint256;
 
   // Store the id of a new proposal unrelated to governor upgrade.
@@ -920,8 +920,8 @@ contract CastVoteWithReasonAndParams is AlphaProposalTest {
     bytes params
   );
 
-  function setUp() public virtual override(AlphaProposalTest) {
-    AlphaProposalTest.setUp();
+  function setUp() public virtual override(ProposalTest) {
+    ProposalTest.setUp();
 
     _upgradeToBravoGovernor();
 
@@ -1062,8 +1062,9 @@ contract CastVoteWithReasonAndParams is AlphaProposalTest {
 
     // Confirm nominal votes can co-exist with partial+fractional votes by
     // voting with the second largest delegate.
-    uint256 _nominalVoterWeight =
-      IPOOL(POOL_TOKEN).getPriorVotes(delegates[1].addr, governorBravo.proposalSnapshot(newProposalId));
+    uint256 _nominalVoterWeight = IPOOL(POOL_TOKEN).getPriorVotes(
+      delegates[1].addr, governorBravo.proposalSnapshot(newProposalId)
+    );
     vm.prank(delegates[1].addr);
     governorBravo.castVote(newProposalId, FOR);
 
