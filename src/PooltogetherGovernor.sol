@@ -10,9 +10,8 @@ import {
   GovernorVotesComp
 } from "@openzeppelin/contracts/governance/extensions/GovernorVotesComp.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
-import {
-  ICompoundTimelock
-} from "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
+import {ICompoundTimelock} from
+  "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
 import {GovernorSettings} from "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 
 import {ITimelockAlpha} from "src/interfaces/ITimelockAlpha.sol";
@@ -118,7 +117,7 @@ contract PooltogetherGovernor is
     override(Governor, GovernorTimelockCompound)
     returns (ProposalState)
   {
-		  return GovernorTimelockCompound.state(proposalId);
+    return GovernorTimelockCompound.state(proposalId);
   }
 
   /// @notice The amount of POOL required to meet the quorum threshold for a proposal
