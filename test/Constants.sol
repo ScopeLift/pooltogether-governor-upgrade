@@ -11,6 +11,7 @@ contract Constants {
   address constant STETH_ADDRESS = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
   uint256 constant MAX_REASONABLE_TIME_PERIOD = 302_400; // 6 weeks assuming a 12 second block time
   address constant V4_TOKEN_FAUCET = 0xBD537257fAd96e977b9E545bE583bbF7028F30b9;
+  address constant V3_CONFIGURABLE_RESERVE =  0xd1797D46C3E825fce5215a0259D3426a5c49455C;
 
   uint256 constant QUORUM = 100_000e18;
 }
