@@ -38,7 +38,10 @@ contract Propose is Script {
   function run(PooltogetherGovernor _newGovernor) public returns (uint256 _proposalId) {
     // The expectation is the key loaded here corresponds to the address of the `proposer` above.
     // When running as a script, broadcast will fail if the key is not correct.
-    uint256 _proposerKey = vm.envUint("PROPOSER_PRIVATE_KEY");
+    uint256 _proposerKey = vm.envOr(
+      "PROPOSER_PRIVATE_KEY",
+      uint256(0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d)
+    );
     vm.rememberKey(_proposerKey);
 
     vm.startBroadcast(PROPOSER);
