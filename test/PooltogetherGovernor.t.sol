@@ -11,6 +11,7 @@ import {ProposalTest} from "test/helpers/ProposalTest.sol";
 import {ProposalBuilder} from "test/helpers/Proposal.sol";
 import {IV4PooltogetherTokenFaucet} from "test/interfaces/IV4PooltogetherTokenFaucet.sol";
 import {IV3ConfigurableReserve} from "test/interfaces/IV3ConfigurableReserve.sol";
+import {IStakePrizePool} from "test/interfaces/IStakePrizePool.sol";
 
 contract Constructor is PooltogetherGovernorTest {
   function testFuzz_CorrectlySetsAllConstructorArgs(uint256 _blockNumber) public {
@@ -1251,15 +1252,17 @@ contract _Execute is ProposalTest {
     );
   }
 
-  // multiple proposal actions
-  // Sunset Uni prize pool
-  // 0x0650d780292142835F6ac58dd8E2a336e87b4393
+  // Nothing to withdraw
   function testFuzz_SunUniPool(uint224 _newRate) public {
     IV3ConfigurableReserve configurableReserve = IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
 
-    address reserveSource = UNI_PRIZE_POOL;
+    address reserveSource = STAKE_PRIZE_POOL;
     uint256 reserveRate = configurableReserve.reserveRateMantissa(reserveSource);
-    assertEq(reserveRate, 0, "Old value is not correct");
+    assertEq(reserveRate, 50000000000000000, "Old value is not correct");
+
+    IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
+    uint256 oldAmount = prizePool.reserveTotalSupply();
+    assertEq(oldAmount, 0, "Current value is incorrect");
 
     // Set reserve to 0 and withdraw
     address[] memory _sources = new address[](1);
@@ -1269,7 +1272,7 @@ contract _Execute is ProposalTest {
     _sources[0] = reserveSource;
     _reserveRates[0] = _newRate;
     _useCustom[0] = true;
-	string memory _description = "This proposal will set the reserve rate to 50%";
+    string memory _description = "This proposal will set the reserve rate to 50%";
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1283,14 +1286,14 @@ contract _Execute is ProposalTest {
       V3_CONFIGURABLE_RESERVE,
       0,
       abi.encodeWithSignature(
-        "withdrawReserve(address,address)", UNI_PRIZE_POOL, POOLTOGETHER_TREASURY
+        "withdrawReserve(address,address)", STAKE_PRIZE_POOL, POOLTOGETHER_TREASURY
       )
     );
     uint256 _newProposalId = _submitProposals(
       proposals.targets(),
       proposals.values(),
       proposals.calldatas(),
-	  _description
+      _description
     );
     _jumpToActiveProposal(_newProposalId);
 
@@ -1318,11 +1321,14 @@ contract _Execute is ProposalTest {
     _state = governorBravo.state(_newProposalId);
     assertEq(_state, IGovernor.ProposalState.Executed);
 
-	// configurableReserve.k
+    uint256 newAmount = prizePool.reserveTotalSupply();
+    assertEq(newAmount, 0, "Current value is incorrect");
 
     // Assert that the drip has been changed
     assertEq(
       _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New value is not correct"
     );
   }
+
+  // Reset number of winners on multiple pools
 }
