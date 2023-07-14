@@ -8,6 +8,7 @@ import {IPOOL} from "src/interfaces/IPOOL.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 import {PooltogetherGovernorTest} from "test/helpers/PooltogetherGovernorTest.sol";
 import {ProposalTest} from "test/helpers/ProposalTest.sol";
+import {ProposalBuilder} from "test/helpers/Proposal.sol";
 import {IV4PooltogetherTokenFaucet} from "test/interfaces/IV4PooltogetherTokenFaucet.sol";
 import {IV3ConfigurableReserve} from "test/interfaces/IV3ConfigurableReserve.sol";
 
@@ -1189,19 +1190,19 @@ contract _Execute is ProposalTest {
   }
 
   function testFuzz_UpdateV3ReserveRate(uint224 _newRate) public {
-    IV3ConfigurableReserve configurableReserve= IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
+    IV3ConfigurableReserve configurableReserve = IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
 
-	address reserveSource = 0x821B9819c0348076AD370b376522e1327AF7684A;
+    address reserveSource = 0x821B9819c0348076AD370b376522e1327AF7684A;
     uint256 reserveRate = configurableReserve.reserveRateMantissa(reserveSource);
     assertEq(reserveRate, 0, "Old value is not correct");
 
-	address[] memory _sources = new address[](1);
-	uint224[] memory _reserveRates = new uint224[](1);
-	bool[] memory _useCustom = new bool[](1);
+    address[] memory _sources = new address[](1);
+    uint224[] memory _reserveRates = new uint224[](1);
+    bool[] memory _useCustom = new bool[](1);
 
-	_sources[0] = reserveSource;
-	_reserveRates[0] = _newRate;
-	_useCustom[0] = true;
+    _sources[0] = reserveSource;
+    _reserveRates[0] = _newRate;
+    _useCustom[0] = true;
 
     (
       uint256 _newProposalId,
@@ -1212,7 +1213,9 @@ contract _Execute is ProposalTest {
     ) = _submitProposal(
       V3_CONFIGURABLE_RESERVE,
       0,
-      abi.encodeWithSignature("setReserveRateMantissa(address[],uint224[],bool[])", _sources, _reserveRates, _useCustom),
+      abi.encodeWithSignature(
+        "setReserveRateMantissa(address[],uint224[],bool[])", _sources, _reserveRates, _useCustom
+      ),
       "This proposal will set the reserve rate to 50%"
     );
 
@@ -1243,7 +1246,83 @@ contract _Execute is ProposalTest {
     assertEq(_state, IGovernor.ProposalState.Executed);
 
     // Assert that the drip has been changed
-    assertEq(_newRate, configurableReserve.reserveRateMantissa(reserveSource), "New value is not correct");
+    assertEq(
+      _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New value is not correct"
+    );
   }
 
+  // multiple proposal actions
+  // Sunset Uni prize pool
+  // 0x0650d780292142835F6ac58dd8E2a336e87b4393
+  function testFuzz_SunUniPool(uint224 _newRate) public {
+    IV3ConfigurableReserve configurableReserve = IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
+
+    address reserveSource = UNI_PRIZE_POOL;
+    uint256 reserveRate = configurableReserve.reserveRateMantissa(reserveSource);
+    assertEq(reserveRate, 0, "Old value is not correct");
+
+    // Set reserve to 0 and withdraw
+    address[] memory _sources = new address[](1);
+    uint224[] memory _reserveRates = new uint224[](1);
+    bool[] memory _useCustom = new bool[](1);
+
+    _sources[0] = reserveSource;
+    _reserveRates[0] = _newRate;
+    _useCustom[0] = true;
+	string memory _description = "This proposal will set the reserve rate to 50%";
+
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(
+      V3_CONFIGURABLE_RESERVE,
+      0,
+      abi.encodeWithSignature(
+        "setReserveRateMantissa(address[],uint224[],bool[])", _sources, _reserveRates, _useCustom
+      )
+    );
+    proposals.add(
+      V3_CONFIGURABLE_RESERVE,
+      0,
+      abi.encodeWithSignature(
+        "withdrawReserve(address,address)", UNI_PRIZE_POOL, POOLTOGETHER_TREASURY
+      )
+    );
+    uint256 _newProposalId = _submitProposals(
+      proposals.targets(),
+      proposals.values(),
+      proposals.calldatas(),
+	  _description
+    );
+    _jumpToActiveProposal(_newProposalId);
+
+    // Delegates vote with a mix of For/Against/Abstain with For winning.
+    vm.prank(delegates[0].addr);
+    governorBravo.castVote(_newProposalId, FOR);
+    vm.prank(delegates[1].addr);
+    governorBravo.castVote(_newProposalId, FOR);
+
+    _jumpToVotingComplete(_newProposalId);
+
+    // Ensure the proposal has succeeded
+    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
+    assertEq(_state, IGovernor.ProposalState.Succeeded);
+
+    // Queue the proposal
+    governorBravo.queue(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+
+    _jumpPastProposalEta(_newProposalId);
+
+    // Execute the proposal
+    governorBravo.execute(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+
+    // Ensure the proposal is executed
+    _state = governorBravo.state(_newProposalId);
+    assertEq(_state, IGovernor.ProposalState.Executed);
+
+	// configurableReserve.k
+
+    // Assert that the drip has been changed
+    assertEq(
+      _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New value is not correct"
+    );
+  }
 }
