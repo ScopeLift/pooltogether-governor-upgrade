@@ -12,6 +12,7 @@ import {ProposalBuilder} from "test/helpers/Proposal.sol";
 import {IV4PooltogetherTokenFaucet} from "test/interfaces/IV4PooltogetherTokenFaucet.sol";
 import {IV3ConfigurableReserve} from "test/interfaces/IV3ConfigurableReserve.sol";
 import {IStakePrizePool} from "test/interfaces/IStakePrizePool.sol";
+import {IV3MultipleWinners} from "test/interfaces/IV3MultipleWinners.sol";
 
 contract Constructor is PooltogetherGovernorTest {
   function testFuzz_CorrectlySetsAllConstructorArgs(uint256 _blockNumber) public {
@@ -1252,7 +1253,9 @@ contract _Execute is ProposalTest {
     );
   }
 
-  // Nothing to withdraw
+  // multiple proposal actions
+  // Sunset Uni prize pool
+  // 0x0650d780292142835F6ac58dd8E2a336e87b4393
   function testFuzz_SunUniPool(uint224 _newRate) public {
     IV3ConfigurableReserve configurableReserve = IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
 
@@ -1330,5 +1333,78 @@ contract _Execute is ProposalTest {
     );
   }
 
-  // Reset number of winners on multiple pools
+  // Nothing to withdraw
+  function testFuzz_SetNumV3Winners(uint256 usdcNumWinners, uint256 daiNumWinners) public {
+  vm.assume(usdcNumWinners > 0);
+  vm.assume(daiNumWinners > 0);
+  // assert numer of winners is 0 for each poolk
+   string memory _description = "Increase the number of winners in the following V3 pools to 2 winner";
+   address USDC_PRIZE_STRATEGY = 0x3D9946190907aDa8b70381b25c71eB9adf5f9B7b;
+   address DAI_PRIZE_STRATEGY = 0x178969A87a78597d303C47198c66F68E8be67Dc2;
+
+   IV3MultipleWinners usdcStrategy = IV3MultipleWinners(USDC_PRIZE_STRATEGY);
+   uint256 existingUsdcWinners = usdcStrategy.numberOfWinners();
+   assertEq(existingUsdcWinners, 1);
+
+   IV3MultipleWinners daiStrategy = IV3MultipleWinners(DAI_PRIZE_STRATEGY);
+   uint256 existingDaiWinners = daiStrategy.numberOfWinners();
+   assertEq(existingDaiWinners, 1);
+
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(
+      USDC_PRIZE_STRATEGY,
+      0,
+      abi.encodeWithSignature(
+        "setNumberOfWinners(uint256)", usdcNumWinners
+      )
+    );
+    proposals.add(
+      DAI_PRIZE_STRATEGY,
+      0,
+      abi.encodeWithSignature(
+        "setNumberOfWinners(uint256)", daiNumWinners
+      )
+    );
+    uint256 _newProposalId = _submitProposals(
+      proposals.targets(),
+      proposals.values(),
+      proposals.calldatas(),
+      _description
+    );
+    _jumpToActiveProposal(_newProposalId);
+
+    // Delegates vote with a mix of For/Against/Abstain with For winning.
+    vm.prank(delegates[0].addr);
+    governorBravo.castVote(_newProposalId, FOR);
+    vm.prank(delegates[1].addr);
+    governorBravo.castVote(_newProposalId, FOR);
+
+    _jumpToVotingComplete(_newProposalId);
+
+    // Ensure the proposal has succeeded
+    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
+    assertEq(_state, IGovernor.ProposalState.Succeeded);
+
+    // Queue the proposal
+    governorBravo.queue(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+
+    _jumpPastProposalEta(_newProposalId);
+
+    // Execute the proposal
+    governorBravo.execute(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+
+    // Ensure the proposal is executed
+    _state = governorBravo.state(_newProposalId);
+    assertEq(_state, IGovernor.ProposalState.Executed);
+
+   uint256 newDaiWinners = daiStrategy.numberOfWinners();
+   assertEq(newDaiWinners,  daiNumWinners);
+
+   uint256 newUsdcWinners = usdcStrategy.numberOfWinners();
+   assertEq(newUsdcWinners,  usdcNumWinners);
+
+
+  }
+
+
 }
