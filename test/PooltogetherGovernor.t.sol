@@ -13,6 +13,7 @@ import {IV4PooltogetherTokenFaucet} from "test/interfaces/IV4PooltogetherTokenFa
 import {IV3ConfigurableReserve} from "test/interfaces/IV3ConfigurableReserve.sol";
 import {IStakePrizePool} from "test/interfaces/IStakePrizePool.sol";
 import {IV3MultipleWinners} from "test/interfaces/IV3MultipleWinners.sol";
+import {IERC721} from "forge-std/interfaces/IERC721.sol";
 
 contract Constructor is PooltogetherGovernorTest {
   function testFuzz_CorrectlySetsAllConstructorArgs(uint256 _blockNumber) public {
@@ -1289,4 +1290,33 @@ contract _Execute is ProposalTest {
     uint256 newUsdcWinners = usdcStrategy.numberOfWinners();
     assertEq(newUsdcWinners, usdcNumWinners);
   }
+
+  function test_SendUniswapPosition() public {
+    string memory _description =
+      "Send Uniswap V3 position to controlled multisig";
+    IERC721 uniswapPositionManager = IERC721(UNISWAP_POSITION_CONTRACT);
+
+    uint256 balance = uniswapPositionManager.balanceOf(TIMELOCK);
+    assertEq(balance, 6);
+
+    uint256 safeBalance= uniswapPositionManager.balanceOf(UNISWAP_SAFE);
+    assertEq(safeBalance, 0);
+
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(
+      UNISWAP_POSITION_CONTRACT, 0, abi.encodeWithSignature("transferFrom(address,address,uint256)", TIMELOCK, UNISWAP_SAFE, 454861)
+    );
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
+    );
+
+    uint256 newBalance = uniswapPositionManager.balanceOf(TIMELOCK);
+    assertEq(newBalance, 5);
+
+    uint256 newSafeBalance= uniswapPositionManager.balanceOf(UNISWAP_SAFE);
+    assertEq(newSafeBalance, 1);
+  }
+
+  // Send Uniswap position to a multisig
+
 }
