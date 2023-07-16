@@ -1253,19 +1253,17 @@ contract _Execute is ProposalTest {
     );
   }
 
-  // multiple proposal actions
-  // Sunset Uni prize pool
-  // 0x0650d780292142835F6ac58dd8E2a336e87b4393
+  // Withdraw reserves from the StakePrizePool
   function testFuzz_SunUniPool(uint224 _newRate) public {
     IV3ConfigurableReserve configurableReserve = IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
 
     address reserveSource = STAKE_PRIZE_POOL;
     uint256 reserveRate = configurableReserve.reserveRateMantissa(reserveSource);
-    assertEq(reserveRate, 50000000000000000, "Old value is not correct");
+    assertEq(reserveRate, 0, "Old value is not correct");
 
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
     uint256 oldAmount = prizePool.reserveTotalSupply();
-    assertEq(oldAmount, 0, "Current value is incorrect");
+    assertEq(oldAmount, 31270374730242635937, "Current value is incorrect");
 
     // Set reserve to 0 and withdraw
     address[] memory _sources = new address[](1);
@@ -1324,6 +1322,7 @@ contract _Execute is ProposalTest {
     _state = governorBravo.state(_newProposalId);
     assertEq(_state, IGovernor.ProposalState.Executed);
 
+	// Assert the reserve has been withdrawn
     uint256 newAmount = prizePool.reserveTotalSupply();
     assertEq(newAmount, 0, "Current value is incorrect");
 
@@ -1337,7 +1336,7 @@ contract _Execute is ProposalTest {
   function testFuzz_SetNumV3Winners(uint256 usdcNumWinners, uint256 daiNumWinners) public {
   vm.assume(usdcNumWinners > 0);
   vm.assume(daiNumWinners > 0);
-  // assert numer of winners is 0 for each poolk
+  // assert numer of winners is 0 for each pool
    string memory _description = "Increase the number of winners in the following V3 pools to 2 winner";
    address USDC_PRIZE_STRATEGY = 0x3D9946190907aDa8b70381b25c71eB9adf5f9B7b;
    address DAI_PRIZE_STRATEGY = 0x178969A87a78597d303C47198c66F68E8be67Dc2;
