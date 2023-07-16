@@ -1181,46 +1181,21 @@ contract _Execute is ProposalTest {
     _reserveRates[0] = _newRate;
     _useCustom[0] = true;
 
-    (
-      uint256 _newProposalId,
-      address[] memory _targets,
-      uint256[] memory _values,
-      bytes[] memory _calldatas,
-      string memory _description
-    ) = _submitProposal(
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(
       V3_CONFIGURABLE_RESERVE,
       0,
       abi.encodeWithSignature(
         "setReserveRateMantissa(address[],uint224[],bool[])", _sources, _reserveRates, _useCustom
-      ),
-      "This proposal will set the reserve rate to 50%"
+      )
     );
-
-    _jumpToActiveProposal(_newProposalId);
-
-    // Delegates vote with a mix of For/Against/Abstain with For winning.
-    vm.prank(delegates[0].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-    vm.prank(delegates[1].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-
-    _jumpToVotingComplete(_newProposalId);
-
-    // Ensure the proposal has succeeded
-    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Succeeded);
-
-    // Queue the proposal
-    governorBravo.queue(_targets, _values, _calldatas, keccak256(bytes(_description)));
-
-    _jumpPastProposalEta(_newProposalId);
-
-    // Execute the proposal
-    governorBravo.execute(_targets, _values, _calldatas, keccak256(bytes(_description)));
-
-    // Ensure the proposal is executed
-    _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Executed);
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(),
+      proposals.values(),
+      proposals.calldatas(),
+      "This proposal will set the reserve rate to 50%",
+      FOR
+    );
 
     // Assert that the drip has been changed
     assertEq(
@@ -1265,37 +1240,9 @@ contract _Execute is ProposalTest {
         "withdrawReserve(address,address)", STAKE_PRIZE_POOL, POOLTOGETHER_TREASURY
       )
     );
-    uint256 _newProposalId =
-      _submitProposals(proposals.targets(), proposals.values(), proposals.calldatas(), _description);
-    _jumpToActiveProposal(_newProposalId);
-
-    // Delegates vote with a mix of For/Against/Abstain with For winning.
-    vm.prank(delegates[0].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-    vm.prank(delegates[1].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-
-    _jumpToVotingComplete(_newProposalId);
-
-    // Ensure the proposal has succeeded
-    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Succeeded);
-
-    // Queue the proposal
-    governorBravo.queue(
-      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
     );
-
-    _jumpPastProposalEta(_newProposalId);
-
-    // Execute the proposal
-    governorBravo.execute(
-      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
-    );
-
-    // Ensure the proposal is executed
-    _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Executed);
 
     // Assert the reserve has been withdrawn
     uint256 newAmount = prizePool.reserveTotalSupply();
@@ -1311,7 +1258,7 @@ contract _Execute is ProposalTest {
   function testFuzz_SetNumV3Winners(uint256 usdcNumWinners, uint256 daiNumWinners) public {
     vm.assume(usdcNumWinners > 0);
     vm.assume(daiNumWinners > 0);
-    // assert numer of winners is 0 for each pool
+
     string memory _description =
       "Increase the number of winners in the following V3 pools to 2 winner";
     address USDC_PRIZE_STRATEGY = 0x3D9946190907aDa8b70381b25c71eB9adf5f9B7b;
@@ -1332,37 +1279,9 @@ contract _Execute is ProposalTest {
     proposals.add(
       DAI_PRIZE_STRATEGY, 0, abi.encodeWithSignature("setNumberOfWinners(uint256)", daiNumWinners)
     );
-    uint256 _newProposalId =
-      _submitProposals(proposals.targets(), proposals.values(), proposals.calldatas(), _description);
-    _jumpToActiveProposal(_newProposalId);
-
-    // Delegates vote with a mix of For/Against/Abstain with For winning.
-    vm.prank(delegates[0].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-    vm.prank(delegates[1].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-
-    _jumpToVotingComplete(_newProposalId);
-
-    // Ensure the proposal has succeeded
-    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Succeeded);
-
-    // Queue the proposal
-    governorBravo.queue(
-      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
     );
-
-    _jumpPastProposalEta(_newProposalId);
-
-    // Execute the proposal
-    governorBravo.execute(
-      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
-    );
-
-    // Ensure the proposal is executed
-    _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Executed);
 
     uint256 newDaiWinners = daiStrategy.numberOfWinners();
     assertEq(newDaiWinners, daiNumWinners);
