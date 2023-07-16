@@ -1149,43 +1149,18 @@ contract _Execute is ProposalTest {
     uint256 oldDrip = tokenFaucet.dripRatePerSecond();
     assertEq(oldDrip, 5_787_037_037_037_037, "Old value is not correct");
 
-    (
-      uint256 _newProposalId,
-      address[] memory _targets,
-      uint256[] memory _values,
-      bytes[] memory _calldatas,
-      string memory _description
-    ) = _submitProposal(
-      V4_TOKEN_FAUCET,
-      0,
-      abi.encodeWithSignature("setDripRatePerSecond(uint256)", newDrip),
-      "This proposal reduces the USDC drip rate by 50% from 1,000 POOL per day to 500. This constitutes a 22% drop in total daily emissions."
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(
+      V4_TOKEN_FAUCET, 0, abi.encodeWithSignature("setDripRatePerSecond(uint256)", newDrip)
     );
-    _jumpToActiveProposal(_newProposalId);
 
-    // Delegates vote with a mix of For/Against/Abstain with For winning.
-    vm.prank(delegates[0].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-    vm.prank(delegates[1].addr);
-    governorBravo.castVote(_newProposalId, FOR);
-
-    _jumpToVotingComplete(_newProposalId);
-
-    // Ensure the proposal has succeeded
-    IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Succeeded);
-
-    // Queue the proposal
-    governorBravo.queue(_targets, _values, _calldatas, keccak256(bytes(_description)));
-
-    _jumpPastProposalEta(_newProposalId);
-
-    // Execute the proposal
-    governorBravo.execute(_targets, _values, _calldatas, keccak256(bytes(_description)));
-
-    // Ensure the proposal is executed
-    _state = governorBravo.state(_newProposalId);
-    assertEq(_state, IGovernor.ProposalState.Executed);
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(),
+      proposals.values(),
+      proposals.calldatas(),
+      "This proposal reduces the USDC drip rate by 50% from 1,000 POOL per day to 500. This constitutes a 22% drop in total daily emissions.",
+      FOR
+    );
 
     // Assert that the drip has been changed
     assertEq(newDrip, tokenFaucet.dripRatePerSecond(), "New value is not correct");
@@ -1263,7 +1238,7 @@ contract _Execute is ProposalTest {
 
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
     uint256 oldAmount = prizePool.reserveTotalSupply();
-    assertEq(oldAmount, 31270374730242635937, "Current value is incorrect");
+    assertEq(oldAmount, 31_270_374_730_242_635_937, "Current value is incorrect");
 
     // Set reserve to 0 and withdraw
     address[] memory _sources = new address[](1);
@@ -1290,12 +1265,8 @@ contract _Execute is ProposalTest {
         "withdrawReserve(address,address)", STAKE_PRIZE_POOL, POOLTOGETHER_TREASURY
       )
     );
-    uint256 _newProposalId = _submitProposals(
-      proposals.targets(),
-      proposals.values(),
-      proposals.calldatas(),
-      _description
-    );
+    uint256 _newProposalId =
+      _submitProposals(proposals.targets(), proposals.values(), proposals.calldatas(), _description);
     _jumpToActiveProposal(_newProposalId);
 
     // Delegates vote with a mix of For/Against/Abstain with For winning.
@@ -1311,18 +1282,22 @@ contract _Execute is ProposalTest {
     assertEq(_state, IGovernor.ProposalState.Succeeded);
 
     // Queue the proposal
-    governorBravo.queue(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+    governorBravo.queue(
+      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
+    );
 
     _jumpPastProposalEta(_newProposalId);
 
     // Execute the proposal
-    governorBravo.execute(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+    governorBravo.execute(
+      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
+    );
 
     // Ensure the proposal is executed
     _state = governorBravo.state(_newProposalId);
     assertEq(_state, IGovernor.ProposalState.Executed);
 
-	// Assert the reserve has been withdrawn
+    // Assert the reserve has been withdrawn
     uint256 newAmount = prizePool.reserveTotalSupply();
     assertEq(newAmount, 0, "Current value is incorrect");
 
@@ -1334,42 +1309,31 @@ contract _Execute is ProposalTest {
 
   // Nothing to withdraw
   function testFuzz_SetNumV3Winners(uint256 usdcNumWinners, uint256 daiNumWinners) public {
-  vm.assume(usdcNumWinners > 0);
-  vm.assume(daiNumWinners > 0);
-  // assert numer of winners is 0 for each pool
-   string memory _description = "Increase the number of winners in the following V3 pools to 2 winner";
-   address USDC_PRIZE_STRATEGY = 0x3D9946190907aDa8b70381b25c71eB9adf5f9B7b;
-   address DAI_PRIZE_STRATEGY = 0x178969A87a78597d303C47198c66F68E8be67Dc2;
+    vm.assume(usdcNumWinners > 0);
+    vm.assume(daiNumWinners > 0);
+    // assert numer of winners is 0 for each pool
+    string memory _description =
+      "Increase the number of winners in the following V3 pools to 2 winner";
+    address USDC_PRIZE_STRATEGY = 0x3D9946190907aDa8b70381b25c71eB9adf5f9B7b;
+    address DAI_PRIZE_STRATEGY = 0x178969A87a78597d303C47198c66F68E8be67Dc2;
 
-   IV3MultipleWinners usdcStrategy = IV3MultipleWinners(USDC_PRIZE_STRATEGY);
-   uint256 existingUsdcWinners = usdcStrategy.numberOfWinners();
-   assertEq(existingUsdcWinners, 1);
+    IV3MultipleWinners usdcStrategy = IV3MultipleWinners(USDC_PRIZE_STRATEGY);
+    uint256 existingUsdcWinners = usdcStrategy.numberOfWinners();
+    assertEq(existingUsdcWinners, 1);
 
-   IV3MultipleWinners daiStrategy = IV3MultipleWinners(DAI_PRIZE_STRATEGY);
-   uint256 existingDaiWinners = daiStrategy.numberOfWinners();
-   assertEq(existingDaiWinners, 1);
+    IV3MultipleWinners daiStrategy = IV3MultipleWinners(DAI_PRIZE_STRATEGY);
+    uint256 existingDaiWinners = daiStrategy.numberOfWinners();
+    assertEq(existingDaiWinners, 1);
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
-      USDC_PRIZE_STRATEGY,
-      0,
-      abi.encodeWithSignature(
-        "setNumberOfWinners(uint256)", usdcNumWinners
-      )
+      USDC_PRIZE_STRATEGY, 0, abi.encodeWithSignature("setNumberOfWinners(uint256)", usdcNumWinners)
     );
     proposals.add(
-      DAI_PRIZE_STRATEGY,
-      0,
-      abi.encodeWithSignature(
-        "setNumberOfWinners(uint256)", daiNumWinners
-      )
+      DAI_PRIZE_STRATEGY, 0, abi.encodeWithSignature("setNumberOfWinners(uint256)", daiNumWinners)
     );
-    uint256 _newProposalId = _submitProposals(
-      proposals.targets(),
-      proposals.values(),
-      proposals.calldatas(),
-      _description
-    );
+    uint256 _newProposalId =
+      _submitProposals(proposals.targets(), proposals.values(), proposals.calldatas(), _description);
     _jumpToActiveProposal(_newProposalId);
 
     // Delegates vote with a mix of For/Against/Abstain with For winning.
@@ -1385,25 +1349,25 @@ contract _Execute is ProposalTest {
     assertEq(_state, IGovernor.ProposalState.Succeeded);
 
     // Queue the proposal
-    governorBravo.queue(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+    governorBravo.queue(
+      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
+    );
 
     _jumpPastProposalEta(_newProposalId);
 
     // Execute the proposal
-    governorBravo.execute(proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description)));
+    governorBravo.execute(
+      proposals.targets(), proposals.values(), proposals.calldatas(), keccak256(bytes(_description))
+    );
 
     // Ensure the proposal is executed
     _state = governorBravo.state(_newProposalId);
     assertEq(_state, IGovernor.ProposalState.Executed);
 
-   uint256 newDaiWinners = daiStrategy.numberOfWinners();
-   assertEq(newDaiWinners,  daiNumWinners);
+    uint256 newDaiWinners = daiStrategy.numberOfWinners();
+    assertEq(newDaiWinners, daiNumWinners);
 
-   uint256 newUsdcWinners = usdcStrategy.numberOfWinners();
-   assertEq(newUsdcWinners,  usdcNumWinners);
-
-
+    uint256 newUsdcWinners = usdcStrategy.numberOfWinners();
+    assertEq(newUsdcWinners, usdcNumWinners);
   }
-
-
 }

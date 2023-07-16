@@ -293,7 +293,7 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     // Ensure proposal is in the expected state
     IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
     assertEq(_state, IGovernor.ProposalState.Pending);
-	return _newProposalId;
+    return _newProposalId;
   }
 
   // Take a proposal through its full lifecycle, from proposing it, to voting on
