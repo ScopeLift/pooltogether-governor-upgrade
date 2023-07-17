@@ -3,6 +3,8 @@ pragma solidity ^0.8.18;
 
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
+import {ERC20VotesComp} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20VotesComp.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 import {IPOOL} from "src/interfaces/IPOOL.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
@@ -1374,10 +1376,18 @@ contract _Execute is ProposalTest {
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
     address prizeStratedgy = prizePool.prizeStrategy();
-    assertEq(prizeStratedgy, 0x21E5E62e0B6B59155110cD36F3F6655FBbCF6424, "Old strategy is incorrect");
+    assertEq(
+      prizeStratedgy, 0x21E5E62e0B6B59155110cD36F3F6655FBbCF6424, "Old strategy is incorrect"
+    );
 
     ProposalBuilder proposals = new ProposalBuilder();
-    proposals.add(STAKE_PRIZE_POOL, 0, abi.encodeWithSignature("setPrizeStrategy(address)", 0x178969A87a78597d303C47198c66F68E8be67Dc2));
+    proposals.add(
+      STAKE_PRIZE_POOL,
+      0,
+      abi.encodeWithSignature(
+        "setPrizeStrategy(address)", 0x178969A87a78597d303C47198c66F68E8be67Dc2
+      )
+    );
     _queueAndVoteAndExecuteProposalWithBravoGovernor(
       proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
     );
@@ -1386,4 +1396,28 @@ contract _Execute is ProposalTest {
     assertEq(newStratedgy, 0x178969A87a78597d303C47198c66F68E8be67Dc2, "New strategy is incorrect");
   }
 
+  // Test delegating to a comp like token to a new account
+  function test_CompLikeDelegate(address newDelegate) public {
+    // Cannot delegate to the 0 address
+    vm.assume(newDelegate != address(0));
+
+    string memory _description = "Set comp like delegate";
+    ERC20VotesComp token = ERC20VotesComp(POOL_TOKEN);
+    uint256 currentVotes = token.getCurrentVotes(newDelegate);
+    assertEq(currentVotes, 0, "Current delegate votes for the token");
+
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(
+      STAKE_PRIZE_POOL,
+      0,
+      abi.encodeWithSignature("compLikeDelegate(address,address)", POOL_TOKEN, newDelegate)
+    );
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
+    );
+
+    vm.warp(10);
+    uint256 newDelegateCurrentVotes = token.getCurrentVotes(newDelegate);
+    assertEq(newDelegateCurrentVotes, 506_647_255_990_808_587_266_180, "New delegate current votes");
+  }
 }
