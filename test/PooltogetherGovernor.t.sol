@@ -1134,18 +1134,15 @@ contract CastVoteWithReasonAndParams is ProposalTest {
   }
 }
 
-// 0x26369c51553b869af716ed726feac8041c471b97789daf86f8488c0341944d51 sunsetting pools proposal
-// Update the drip rate https://vote.pooltogether.com/proposals/23
-
 contract _Execute is ProposalTest {
   function setUp() public virtual override(ProposalTest) {
     ProposalTest.setUp();
-
     _upgradeToBravoGovernor();
   }
 
-  function testFuzz_updateV4DripRate(uint256 newDrip) public {
+  function testFuzz_UpdateV4DripRate(uint256 newDrip) public {
     // Drip must be greater than 0
+	// https://etherscan.io/address/0xbd537257fad96e977b9e545be583bbf7028f30b9#code#F1#L162
     vm.assume(newDrip > 0);
 
     IV4PooltogetherTokenFaucet tokenFaucet = IV4PooltogetherTokenFaucet(V4_TOKEN_FAUCET);
@@ -1161,12 +1158,12 @@ contract _Execute is ProposalTest {
       proposals.targets(),
       proposals.values(),
       proposals.calldatas(),
-      "This proposal reduces the USDC drip rate by 50% from 1,000 POOL per day to 500. This constitutes a 22% drop in total daily emissions.",
+      "Change to a new drip rate.",
       FOR
     );
 
     // Assert that the drip has been changed
-    assertEq(newDrip, tokenFaucet.dripRatePerSecond(), "New value is not correct");
+    assertEq(newDrip, tokenFaucet.dripRatePerSecond(), "New drip value is not correct");
   }
 
   function testFuzz_UpdateV3ReserveRate(uint224 _newRate) public {
@@ -1174,7 +1171,7 @@ contract _Execute is ProposalTest {
 
     address reserveSource = 0x821B9819c0348076AD370b376522e1327AF7684A;
     uint256 reserveRate = configurableReserve.reserveRateMantissa(reserveSource);
-    assertEq(reserveRate, 0, "Old value is not correct");
+    assertEq(reserveRate, 0, "Old reserve rate is not correct");
 
     address[] memory _sources = new address[](1);
     uint224[] memory _reserveRates = new uint224[](1);
@@ -1196,29 +1193,27 @@ contract _Execute is ProposalTest {
       proposals.targets(),
       proposals.values(),
       proposals.calldatas(),
-      "This proposal will set the reserve rate to 50%",
+      "Change the reserve rate.",
       FOR
     );
 
-    // Assert that the drip has been changed
+    // Assert that the reserve rate has changed
     assertEq(
-      _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New value is not correct"
+      _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New reserve rate is not correct"
     );
   }
 
-  // Withdraw reserves from the StakePrizePool
-  function testFuzz_SunUniPool(uint224 _newRate) public {
+  function testFuzz_SunsetV3StakePool(uint224 _newRate) public {
     IV3ConfigurableReserve configurableReserve = IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
 
     address reserveSource = STAKE_PRIZE_POOL;
     uint256 reserveRate = configurableReserve.reserveRateMantissa(reserveSource);
-    assertEq(reserveRate, 0, "Old value is not correct");
+    assertEq(reserveRate, 0, "Old reserve rate is not correct");
 
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
     uint256 oldAmount = prizePool.reserveTotalSupply();
-    assertEq(oldAmount, 31_270_374_730_242_635_937, "Current value is incorrect");
+    assertEq(oldAmount, 31_270_374_730_242_635_937, "Current amount is incorrect");
 
-    // Set reserve to 0 and withdraw
     address[] memory _sources = new address[](1);
     uint224[] memory _reserveRates = new uint224[](1);
     bool[] memory _useCustom = new bool[](1);
@@ -1226,7 +1221,7 @@ contract _Execute is ProposalTest {
     _sources[0] = reserveSource;
     _reserveRates[0] = _newRate;
     _useCustom[0] = true;
-    string memory _description = "This proposal will set the reserve rate to 50%";
+    string memory _description = "Change rate and withdraw reserve";
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1249,21 +1244,22 @@ contract _Execute is ProposalTest {
 
     // Assert the reserve has been withdrawn
     uint256 newAmount = prizePool.reserveTotalSupply();
-    assertEq(newAmount, 0, "Current value is incorrect");
+    assertEq(newAmount, 0, "New amount is incorrect");
 
-    // Assert that the drip has been changed
+    // Assert that the reserve rate has been changed
     assertEq(
-      _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New value is not correct"
+      _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New reserve is not correct"
     );
   }
 
-  // Nothing to withdraw
   function testFuzz_SetNumV3Winners(uint256 usdcNumWinners, uint256 daiNumWinners) public {
+    // Cannot be 0 address
+	// https://etherscan.io/address/0x3d9946190907ada8b70381b25c71eb9adf5f9b7b#code#F1#L54
     vm.assume(usdcNumWinners > 0);
     vm.assume(daiNumWinners > 0);
 
     string memory _description =
-      "Increase the number of winners in the following V3 pools to 2 winner";
+      "Increase the number of winners in the following V3 pools";
     address USDC_PRIZE_STRATEGY = 0x3D9946190907aDa8b70381b25c71eB9adf5f9B7b;
     address DAI_PRIZE_STRATEGY = 0x178969A87a78597d303C47198c66F68E8be67Dc2;
 
@@ -1286,9 +1282,11 @@ contract _Execute is ProposalTest {
       proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
     );
 
+	// Assert the number of DAI winners is correct
     uint256 newDaiWinners = daiStrategy.numberOfWinners();
     assertEq(newDaiWinners, daiNumWinners);
 
+	// Assert the number of USDC winners is correct
     uint256 newUsdcWinners = usdcStrategy.numberOfWinners();
     assertEq(newUsdcWinners, usdcNumWinners);
   }
@@ -1300,7 +1298,7 @@ contract _Execute is ProposalTest {
     uint256 balance = uniswapPositionManager.balanceOf(TIMELOCK);
     assertEq(balance, 6);
 
-    uint256 safeBalance = uniswapPositionManager.balanceOf(UNISWAP_SAFE);
+    uint256 safeBalance = uniswapPositionManager.balanceOf(POOLTOGETHER_UNISWAP_SAFE);
     assertEq(safeBalance, 0);
 
     ProposalBuilder proposals = new ProposalBuilder();
@@ -1308,7 +1306,7 @@ contract _Execute is ProposalTest {
       UNISWAP_POSITION_CONTRACT,
       0,
       abi.encodeWithSignature(
-        "transferFrom(address,address,uint256)", TIMELOCK, UNISWAP_SAFE, 454_861
+        "transferFrom(address,address,uint256)", TIMELOCK, POOLTOGETHER_UNISWAP_SAFE, 454_861
       )
     );
     _queueAndVoteAndExecuteProposalWithBravoGovernor(
@@ -1318,18 +1316,17 @@ contract _Execute is ProposalTest {
     uint256 newBalance = uniswapPositionManager.balanceOf(TIMELOCK);
     assertEq(newBalance, 5);
 
-    uint256 newSafeBalance = uniswapPositionManager.balanceOf(UNISWAP_SAFE);
+    uint256 newSafeBalance = uniswapPositionManager.balanceOf(POOLTOGETHER_UNISWAP_SAFE);
     assertEq(newSafeBalance, 1);
   }
 
-  // Set credit plan for the POOL token
-  function testFuzz_SetCreditPlanOf(uint128 _creditLimit, uint128 _creditRate) public {
+  function testFuzz_V3PrizePoolSetCreditPlanOf(uint128 _creditLimit, uint128 _creditRate) public {
     string memory _description = "Set a new credit plan for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
     (uint256 creditLimit, uint256 creditRate) = prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
     assertEq(creditLimit, 0, "Old credit limit is incorrect");
-    assertEq(creditRate, 0, "Old credit limit is incorrect");
+    assertEq(creditRate, 0, "Old credit rate is incorrect");
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1349,12 +1346,11 @@ contract _Execute is ProposalTest {
     (uint256 newCreditLimit, uint256 newCreditRate) =
       prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
     assertEq(newCreditLimit, _creditLimit, "New credit limit is incorrect");
-    assertEq(newCreditRate, _creditRate, "New credit limit is incorrect");
+    assertEq(newCreditRate, _creditRate, "New credit rate is incorrect");
   }
 
-  // Set new liquidity Cap
-  function testFuzz_SetLiquidityCap(uint256 _cap) public {
-    string memory _description = "Set a new credit plan for the POOL token ";
+  function testFuzz_V3PrizePoolSetLiquidityCap(uint256 _cap) public {
+    string memory _description = "Set a new liquidity cap for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
     uint256 liquidityCap = prizePool.liquidityCap();
@@ -1370,9 +1366,8 @@ contract _Execute is ProposalTest {
     assertEq(newCap, _cap, "New cap is incorrect");
   }
 
-  // Set new prize strategy
-  function test_SetPrizeStrategy() public {
-    string memory _description = "Set a new credit plan for the POOL token ";
+  function test_V3PrizePoolSetPrizeStrategy() public {
+    string memory _description = "Set a new prize pool strategy for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
     address prizeStratedgy = prizePool.prizeStrategy();
@@ -1396,9 +1391,9 @@ contract _Execute is ProposalTest {
     assertEq(newStratedgy, 0x178969A87a78597d303C47198c66F68E8be67Dc2, "New strategy is incorrect");
   }
 
-  // Test delegating to a comp like token to a new account
-  function test_CompLikeDelegate(address newDelegate) public {
+  function test_V3PrizePoolCompLikeDelegate(address newDelegate) public {
     // Cannot delegate to the 0 address
+	// https://etherscan.io/address/0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e#code#F1#L329
     vm.assume(newDelegate != address(0));
 
     string memory _description = "Set comp like delegate";
