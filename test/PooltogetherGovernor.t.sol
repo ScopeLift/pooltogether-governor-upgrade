@@ -1292,19 +1292,22 @@ contract _Execute is ProposalTest {
   }
 
   function test_SendUniswapPosition() public {
-    string memory _description =
-      "Send Uniswap V3 position to controlled multisig";
+    string memory _description = "Send Uniswap V3 position to controlled multisig";
     IERC721 uniswapPositionManager = IERC721(UNISWAP_POSITION_CONTRACT);
 
     uint256 balance = uniswapPositionManager.balanceOf(TIMELOCK);
     assertEq(balance, 6);
 
-    uint256 safeBalance= uniswapPositionManager.balanceOf(UNISWAP_SAFE);
+    uint256 safeBalance = uniswapPositionManager.balanceOf(UNISWAP_SAFE);
     assertEq(safeBalance, 0);
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
-      UNISWAP_POSITION_CONTRACT, 0, abi.encodeWithSignature("transferFrom(address,address,uint256)", TIMELOCK, UNISWAP_SAFE, 454861)
+      UNISWAP_POSITION_CONTRACT,
+      0,
+      abi.encodeWithSignature(
+        "transferFrom(address,address,uint256)", TIMELOCK, UNISWAP_SAFE, 454_861
+      )
     );
     _queueAndVoteAndExecuteProposalWithBravoGovernor(
       proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
@@ -1313,14 +1316,13 @@ contract _Execute is ProposalTest {
     uint256 newBalance = uniswapPositionManager.balanceOf(TIMELOCK);
     assertEq(newBalance, 5);
 
-    uint256 newSafeBalance= uniswapPositionManager.balanceOf(UNISWAP_SAFE);
+    uint256 newSafeBalance = uniswapPositionManager.balanceOf(UNISWAP_SAFE);
     assertEq(newSafeBalance, 1);
   }
 
   // Set credit plan for the POOL token
   function test_SetCreditPlanOf(uint128 _creditLimit, uint128 _creditRate) public {
-    string memory _description =
-      "Set a new credit plan for the POOL token ";
+    string memory _description = "Set a new credit plan for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
     (uint256 creditLimit, uint256 creditRate) = prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
@@ -1329,16 +1331,40 @@ contract _Execute is ProposalTest {
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
-      STAKE_PRIZE_POOL, 0, abi.encodeWithSignature("setCreditPlanOf(address,uint128,uint128)", POOLTOGETHER_POOL_TICKET, _creditRate, _creditLimit)
+      STAKE_PRIZE_POOL,
+      0,
+      abi.encodeWithSignature(
+        "setCreditPlanOf(address,uint128,uint128)",
+        POOLTOGETHER_POOL_TICKET,
+        _creditRate,
+        _creditLimit
+      )
     );
     _queueAndVoteAndExecuteProposalWithBravoGovernor(
       proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
     );
 
-    (uint256 newCreditLimit, uint256 newCreditRate) = prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
+    (uint256 newCreditLimit, uint256 newCreditRate) =
+      prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
     assertEq(newCreditLimit, _creditLimit, "New credit limit is incorrect");
     assertEq(newCreditRate, _creditRate, "New credit limit is incorrect");
   }
 
+  // Set new liquidity Cap
+  function test_SetLiquidityCap(uint256 _cap) public {
+    string memory _description = "Set a new credit plan for the POOL token ";
+    IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
+    uint256 liquidityCap = prizePool.liquidityCap();
+    assertEq(liquidityCap, type(uint256).max, "Old cap is incorrect");
+
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(STAKE_PRIZE_POOL, 0, abi.encodeWithSignature("setLiquidityCap(uint256)", _cap));
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
+    );
+
+    uint256 newCap = prizePool.liquidityCap();
+    assertEq(newCap, _cap, "New cap is incorrect");
+  }
 }
