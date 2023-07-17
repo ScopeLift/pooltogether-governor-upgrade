@@ -1321,7 +1321,7 @@ contract _Execute is ProposalTest {
   }
 
   // Set credit plan for the POOL token
-  function test_SetCreditPlanOf(uint128 _creditLimit, uint128 _creditRate) public {
+  function testFuzz_SetCreditPlanOf(uint128 _creditLimit, uint128 _creditRate) public {
     string memory _description = "Set a new credit plan for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
@@ -1351,7 +1351,7 @@ contract _Execute is ProposalTest {
   }
 
   // Set new liquidity Cap
-  function test_SetLiquidityCap(uint256 _cap) public {
+  function testFuzz_SetLiquidityCap(uint256 _cap) public {
     string memory _description = "Set a new credit plan for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
@@ -1367,4 +1367,23 @@ contract _Execute is ProposalTest {
     uint256 newCap = prizePool.liquidityCap();
     assertEq(newCap, _cap, "New cap is incorrect");
   }
+
+  // Set new prize strategy
+  function test_SetPrizeStrategy() public {
+    string memory _description = "Set a new credit plan for the POOL token ";
+    IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
+
+    address prizeStratedgy = prizePool.prizeStrategy();
+    assertEq(prizeStratedgy, 0x21E5E62e0B6B59155110cD36F3F6655FBbCF6424, "Old strategy is incorrect");
+
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(STAKE_PRIZE_POOL, 0, abi.encodeWithSignature("setPrizeStrategy(address)", 0x178969A87a78597d303C47198c66F68E8be67Dc2));
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
+    );
+
+    address newStratedgy = prizePool.prizeStrategy();
+    assertEq(newStratedgy, 0x178969A87a78597d303C47198c66F68E8be67Dc2, "New strategy is incorrect");
+  }
+
 }
