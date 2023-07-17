@@ -1317,6 +1317,28 @@ contract _Execute is ProposalTest {
     assertEq(newSafeBalance, 1);
   }
 
-  // Send Uniswap position to a multisig
+  // Set credit plan for the POOL token
+  function test_SetCreditPlanOf(uint128 _creditLimit, uint128 _creditRate) public {
+    string memory _description =
+      "Set a new credit plan for the POOL token ";
+    IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
+
+    (uint256 creditLimit, uint256 creditRate) = prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
+    assertEq(creditLimit, 0, "Old credit limit is incorrect");
+    assertEq(creditRate, 0, "Old credit limit is incorrect");
+
+    ProposalBuilder proposals = new ProposalBuilder();
+    proposals.add(
+      STAKE_PRIZE_POOL, 0, abi.encodeWithSignature("setCreditPlanOf(address,uint128,uint128)", POOLTOGETHER_POOL_TICKET, _creditRate, _creditLimit)
+    );
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
+    );
+
+    (uint256 newCreditLimit, uint256 newCreditRate) = prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
+    assertEq(newCreditLimit, _creditLimit, "New credit limit is incorrect");
+    assertEq(newCreditRate, _creditRate, "New credit limit is incorrect");
+  }
+
 
 }
