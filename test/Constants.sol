@@ -8,6 +8,7 @@ contract Constants {
   address constant PROPOSER = 0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27; // lonser.eth
   address constant PTAUSDC_ADDRESS = 0xdd4d117723C257CEe402285D3aCF218E9A8236E1;
   address constant DAI_ADDRESS = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+  address constant STETH_ADDRESS = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
   uint256 constant MAX_REASONABLE_TIME_PERIOD = 302_400; // 6 weeks assuming a 12 second block time
 
   uint256 constant QUORUM = 100_000e18;

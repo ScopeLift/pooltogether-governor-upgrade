@@ -268,6 +268,69 @@ contract Propose is ProposalTest {
     );
   }
 
+  function testFuzz_OldGovernorSendsSTETHAfterProposalIsDefeated(
+    uint256 _amount,
+    address _receiver,
+    uint256 _seed
+  ) public {
+    _assumeReceiver(_receiver);
+    IERC20 _token = IERC20(STETH_ADDRESS);
+
+    uint256 _receiverTokenBalance = _token.balanceOf(_receiver);
+    uint256 _timelockTokenBalance = _token.balanceOf(TIMELOCK);
+    // Bound by the number of tokens the timelock currently controls
+    // Steth suffers from an off by 2 issues which we have to correct
+    // https://docs.lido.fi/guides/steth-integration-guide#1-2-wei-corner-case
+    _amount = bound(_amount, 2, _timelockTokenBalance - 2);
+
+    // Defeat the proposal to upgrade the Governor
+    _defeatUpgradeProposal();
+
+    // Craft a new proposal to send the token.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    string[] memory _signatures = new string [](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    _targets[0] = address(_token);
+    _values[0] = 0;
+    _signatures[0] = "transfer(address,uint256)";
+    _calldatas[0] = abi.encode(_receiver, _amount);
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      _signatures,
+      _calldatas,
+      true // GovernorAlpha is still the Timelock admin.
+    );
+
+    // Ensure the tokens have been transferred from the timelock to the receiver.
+    //
+    // Add and subtract 2 to handle the off by 2 error
+    assertGe(
+      _token.balanceOf(TIMELOCK),
+      _timelockTokenBalance - _amount - 2,
+      "Timelock token balance is to low"
+    );
+    assertLe(
+      _token.balanceOf(TIMELOCK),
+      _timelockTokenBalance - _amount + 2,
+      "Timelock token balance is to high"
+    );
+
+    assertGe(
+      _token.balanceOf(_receiver),
+      _receiverTokenBalance + _amount - 2,
+      "Receiver token balance is too low"
+    );
+    assertLe(
+      _token.balanceOf(_receiver),
+      _receiverTokenBalance + _amount + 2,
+      "Receiver token balance is too high"
+    );
+  }
+
   function testFuzz_OldGovernorCanNotSendTokensAfterUpgradeCompletes(
     uint256 _amount,
     address _receiver,
@@ -279,6 +342,47 @@ contract Propose is ProposalTest {
     uint256 _receiverTokenBalance = _token.balanceOf(_receiver);
     uint256 _timelockTokenBalance = _token.balanceOf(TIMELOCK);
     // bound by the number of tokens the timelock currently controls
+    _amount = bound(_amount, 0, _timelockTokenBalance);
+
+    // Pass and execute the proposal to upgrade the Governor
+    _upgradeToBravoGovernor();
+
+    // Craft a new proposal to send the token.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    string[] memory _signatures = new string [](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    _targets[0] = address(_token);
+    _values[0] = 0;
+    _signatures[0] = "transfer(address,uint256)";
+    _calldatas[0] = abi.encode(_receiver, _amount);
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      _signatures,
+      _calldatas,
+      false // GovernorAlpha is not the Timelock admin anymore.
+    );
+
+    // Ensure no tokens have been transferred from the timelock to the receiver.
+    assertEq(_token.balanceOf(TIMELOCK), _timelockTokenBalance, "Timelock balance is incorrect");
+    assertEq(_token.balanceOf(_receiver), _receiverTokenBalance, "Receiver balance is incorrect");
+  }
+
+  // Adding StEth to the _randomERC20 function causes other tests to fail so we pulled it out into a
+  // separate test
+  function testFuzz_OldGovernorCanNotSendSTETHAfterUpgradeCompletes(
+    uint256 _amount,
+    address _receiver,
+    uint256 _seed
+  ) public {
+    _assumeReceiver(_receiver);
+    IERC20 _token = IERC20(STETH_ADDRESS);
+
+    uint256 _receiverTokenBalance = _token.balanceOf(_receiver);
+    uint256 _timelockTokenBalance = _token.balanceOf(TIMELOCK);
     _amount = bound(_amount, 0, _timelockTokenBalance);
 
     // Pass and execute the proposal to upgrade the Governor
