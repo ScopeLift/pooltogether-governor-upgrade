@@ -174,8 +174,12 @@ contract Propose is ProposalTest {
     );
 
     // Ensure the ETH has been transferred to the receiver
-    assertEq(address(governorAlpha).balance, _governorETHBalance - _amount);
-    assertEq(_receiver.balance, _receiverETHBalance + _amount);
+    assertEq(
+      address(governorAlpha).balance,
+      _governorETHBalance - _amount,
+      "Governor alpha ETH balance is incorrect"
+    );
+    assertEq(_receiver.balance, _receiverETHBalance + _amount, "Receiver ETH balance is incorrect");
   }
 
   function testFuzz_OldGovernorCannotSendETHAfterProposalSucceeds(
@@ -252,8 +256,16 @@ contract Propose is ProposalTest {
     );
 
     // Ensure the tokens have been transferred from the timelock to the receiver.
-    assertEq(_token.balanceOf(TIMELOCK), _timelockTokenBalance - _amount);
-    assertEq(_token.balanceOf(_receiver), _receiverTokenBalance + _amount);
+    assertEq(
+      _token.balanceOf(TIMELOCK),
+      _timelockTokenBalance - _amount,
+      "Timelock token balance is incorrect"
+    );
+    assertEq(
+      _token.balanceOf(_receiver),
+      _receiverTokenBalance + _amount,
+      "Receiver token balance is incorrect"
+    );
   }
 
   function testFuzz_OldGovernorCanNotSendTokensAfterUpgradeCompletes(
@@ -292,7 +304,7 @@ contract Propose is ProposalTest {
     );
 
     // Ensure no tokens have been transferred from the timelock to the receiver.
-    assertEq(_token.balanceOf(TIMELOCK), _timelockTokenBalance);
-    assertEq(_token.balanceOf(_receiver), _receiverTokenBalance);
+    assertEq(_token.balanceOf(TIMELOCK), _timelockTokenBalance, "Timelock balance is incorrect");
+    assertEq(_token.balanceOf(_receiver), _receiverTokenBalance, "Receiver balance is incorrect");
   }
 }

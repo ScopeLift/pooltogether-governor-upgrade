@@ -13,7 +13,6 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
   //----------------- State and Setup ----------- //
 
   IGovernorAlpha governorAlpha = IGovernorAlpha(GOVERNOR_ALPHA);
-  IERC20 usdcToken = IERC20(USDC_ADDRESS);
   ICompoundTimelock timelock = ICompoundTimelock(payable(TIMELOCK));
   uint256 initialProposalCount;
   uint256 upgradeProposalId;
@@ -54,8 +53,9 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
   }
 
   function _randomERC20Token(uint256 _seed) internal view returns (IERC20 _token) {
-    if (_seed % 2 == 0) _token = IERC20(POOL_TOKEN);
-    if (_seed % 2 == 1) _token = usdcToken;
+    if (_seed % 3 == 0) _token = IERC20(POOL_TOKEN);
+    if (_seed % 3 == 1) _token = IERC20(PTAUSDC_ADDRESS);
+    if (_seed % 3 == 2) _token = IERC20(DAI_ADDRESS);
   }
 
   function _upgradeProposalStartBlock() internal view returns (uint256) {
