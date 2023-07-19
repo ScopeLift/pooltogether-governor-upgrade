@@ -514,7 +514,7 @@ contract Propose is ProposalTest {
     _assumeReceiver(_receiver);
     // The Timelock currently has approximately 30.4 ETH
     // https://etherscan.io/address/0x42cd8312D2BCe04277dD5161832460e95b24262E
-    bound(_amount, 0, 30.4 ether);
+    _amount = bound(_amount, 0, 30.4 ether);
     uint256 _timelockETHBalance = TIMELOCK.balance;
     uint256 _receiverETHBalance = _receiver.balance;
 
