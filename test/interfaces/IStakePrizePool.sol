@@ -1,6 +1,7 @@
 //
 pragma solidity ^0.8.10;
 
+// Taken from `cast interface 0x396b4489da692788e327E2e4b2B0459A5Ef26791`
 interface IStakePrizePool {
   event AwardCaptured(uint256 amount);
   event Awarded(address indexed winner, address indexed token, uint256 amount);

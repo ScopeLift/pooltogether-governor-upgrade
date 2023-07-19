@@ -1,6 +1,6 @@
 pragma solidity ^0.8.18;
 
-// Taken from 0xd1797D46C3E825fce5215a0259D3426a5c49455C
+// Generated with `cast interface 0xd1797D46C3E825fce5215a0259D3426a5c49455C`
 interface IV3ConfigurableReserve {
   event DefaultReserveRateMantissaSet(uint256 rate);
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
