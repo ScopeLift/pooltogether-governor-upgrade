@@ -150,7 +150,9 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   ) internal virtual override {
     uint256 eta = proposalEta(proposalId);
     require(eta > 0, "GovernorTimelockCompound: proposal not yet queued");
-    // Changed
+    // In the original contract, the _timelock is not casted to an address. Failing to cast it causes a compile error "Explicit type conversion not allowed from "contract ITimelockAlpha" to "address payable".". We explicitly cast to an address to solve this error.
+	//
+	// Original Openzeppelin line: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L123
     Address.sendValue(payable(address(_timelock)), msg.value);
     for (uint256 i = 0; i < targets.length; ++i) {
       _timelock.executeTransaction(targets[i], values[i], "", calldatas[i], eta);
