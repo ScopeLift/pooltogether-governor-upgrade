@@ -510,6 +510,37 @@ contract Propose is ProposalTest {
     assertEq(TIMELOCK.balance, _timelockETHBalance - _amount);
   }
 
+  function testFuzz_NewGovernorCanPassProposalToSendETHWithNoDeal(uint256 _amount, address _receiver) public {
+    _assumeReceiver(_receiver);
+	// The Timelock currently has approximately 30.4 ETH
+	// https://etherscan.io/address/0x42cd8312D2BCe04277dD5161832460e95b24262E
+    vm.assume( _amount < 30.4 ether);
+    uint256 _timelockETHBalance = TIMELOCK.balance;
+    uint256 _receiverETHBalance = _receiver.balance;
+
+    _upgradeToBravoGovernor();
+
+    // Craft a new proposal to send ETH.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    _targets[0] = _receiver;
+    _values[0] = _amount;
+
+    _queueAndVoteAndExecuteProposalWithBravoGovernor(
+      _targets,
+      _values,
+      new bytes[](1), // There is no calldata for a plain ETH call.
+      "Transfer some ETH via the new Governor",
+      FOR // Vote/suppport type.
+    );
+
+    // Ensure the ETH was transferred.
+    assertEq(_receiver.balance, _receiverETHBalance + _amount);
+    assertEq(TIMELOCK.balance, _timelockETHBalance - _amount);
+  }
+
+
+
   function testFuzz_NewGovernorCanPassProposalToSendETHWithTokens(
     uint256 _amountETH,
     uint256 _amountToken,
