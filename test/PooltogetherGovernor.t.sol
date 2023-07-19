@@ -510,11 +510,14 @@ contract Propose is ProposalTest {
     assertEq(TIMELOCK.balance, _timelockETHBalance - _amount);
   }
 
-  function testFuzz_NewGovernorCanPassProposalToSendETHWithNoDeal(uint256 _amount, address _receiver) public {
+  function testFuzz_NewGovernorCanPassProposalToSendETHWithNoDeal(
+    uint256 _amount,
+    address _receiver
+  ) public {
     _assumeReceiver(_receiver);
-	// The Timelock currently has approximately 30.4 ETH
-	// https://etherscan.io/address/0x42cd8312D2BCe04277dD5161832460e95b24262E
-    vm.assume( _amount < 30.4 ether);
+    // The Timelock currently has approximately 30.4 ETH
+    // https://etherscan.io/address/0x42cd8312D2BCe04277dD5161832460e95b24262E
+    vm.assume(_amount < 30.4 ether);
     uint256 _timelockETHBalance = TIMELOCK.balance;
     uint256 _receiverETHBalance = _receiver.balance;
 
@@ -538,8 +541,6 @@ contract Propose is ProposalTest {
     assertEq(_receiver.balance, _receiverETHBalance + _amount);
     assertEq(TIMELOCK.balance, _timelockETHBalance - _amount);
   }
-
-
 
   function testFuzz_NewGovernorCanPassProposalToSendETHWithTokens(
     uint256 _amountETH,

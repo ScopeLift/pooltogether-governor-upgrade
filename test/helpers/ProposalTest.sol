@@ -257,12 +257,7 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
   ) internal {
     // Submit the new proposal
     vm.prank(PROPOSER);
-    uint256 _newProposalId = governorBravo.propose(
-      _targets,
-      _values,
-      _calldatas,
-      _description
-    );
+    uint256 _newProposalId = governorBravo.propose(_targets, _values, _calldatas, _description);
 
     // Ensure proposal is Pending.
     IGovernor.ProposalState _state = governorBravo.state(_newProposalId);
