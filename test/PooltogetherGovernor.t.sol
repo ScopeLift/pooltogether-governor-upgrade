@@ -1142,7 +1142,7 @@ contract _Execute is ProposalTest {
 
   function testFuzz_UpdateV4DripRate(uint256 newDrip) public {
     // Drip must be greater than 0
-	// https://etherscan.io/address/0xbd537257fad96e977b9e545be583bbf7028f30b9#code#F1#L162
+    // https://etherscan.io/address/0xbd537257fad96e977b9e545be583bbf7028f30b9#code#F1#L162
     vm.assume(newDrip > 0);
 
     IV4PooltogetherTokenFaucet tokenFaucet = IV4PooltogetherTokenFaucet(V4_TOKEN_FAUCET);
@@ -1199,7 +1199,9 @@ contract _Execute is ProposalTest {
 
     // Assert that the reserve rate has changed
     assertEq(
-      _newRate, configurableReserve.reserveRateMantissa(reserveSource), "New reserve rate is not correct"
+      _newRate,
+      configurableReserve.reserveRateMantissa(reserveSource),
+      "New reserve rate is not correct"
     );
   }
 
@@ -1254,12 +1256,11 @@ contract _Execute is ProposalTest {
 
   function testFuzz_SetNumV3Winners(uint256 usdcNumWinners, uint256 daiNumWinners) public {
     // Cannot be 0 address
-	// https://etherscan.io/address/0x3d9946190907ada8b70381b25c71eb9adf5f9b7b#code#F1#L54
+    // https://etherscan.io/address/0x3d9946190907ada8b70381b25c71eb9adf5f9b7b#code#F1#L54
     vm.assume(usdcNumWinners > 0);
     vm.assume(daiNumWinners > 0);
 
-    string memory _description =
-      "Increase the number of winners in the following V3 pools";
+    string memory _description = "Increase the number of winners in the following V3 pools";
     address USDC_PRIZE_STRATEGY = 0x3D9946190907aDa8b70381b25c71eB9adf5f9B7b;
     address DAI_PRIZE_STRATEGY = 0x178969A87a78597d303C47198c66F68E8be67Dc2;
 
@@ -1282,11 +1283,11 @@ contract _Execute is ProposalTest {
       proposals.targets(), proposals.values(), proposals.calldatas(), _description, FOR
     );
 
-	// Assert the number of DAI winners is correct
+    // Assert the number of DAI winners is correct
     uint256 newDaiWinners = daiStrategy.numberOfWinners();
     assertEq(newDaiWinners, daiNumWinners);
 
-	// Assert the number of USDC winners is correct
+    // Assert the number of USDC winners is correct
     uint256 newUsdcWinners = usdcStrategy.numberOfWinners();
     assertEq(newUsdcWinners, usdcNumWinners);
   }
@@ -1393,7 +1394,7 @@ contract _Execute is ProposalTest {
 
   function test_V3PrizePoolCompLikeDelegate(address newDelegate) public {
     // Cannot delegate to the 0 address
-	// https://etherscan.io/address/0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e#code#F1#L329
+    // https://etherscan.io/address/0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e#code#F1#L329
     vm.assume(newDelegate != address(0));
 
     string memory _description = "Set comp like delegate";
