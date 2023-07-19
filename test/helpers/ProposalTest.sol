@@ -258,7 +258,7 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     // Submit the new proposal
     vm.prank(PROPOSER);
     uint256 _newProposalId = governorBravo.propose(
-      _targets, // Go away formatter!
+      _targets,
       _values,
       _calldatas,
       _description
