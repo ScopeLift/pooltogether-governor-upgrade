@@ -627,7 +627,7 @@ contract Propose is ProposalTest {
 
     _jumpToActiveProposal(_newProposalId);
 
-    _delegatesVoteOnBravoGovernor(_newProposalId, FOR);
+    _delegatesCastVoteOnBravoGovernor(_newProposalId, FOR);
     _jumpToVotingComplete(_newProposalId);
 
     // Ensure the proposal has succeeded
@@ -847,7 +847,7 @@ contract Propose is ProposalTest {
 
     // Defeat the proposal on Bravo.
     assertEq(governorBravo.state(_vars.bravoProposalId), IGovernor.ProposalState.Active);
-    _delegatesVoteOnBravoGovernor(_vars.bravoProposalId, AGAINST);
+    _delegatesCastVoteOnBravoGovernor(_vars.bravoProposalId, AGAINST);
 
     // Pass the proposal on Alpha.
     for (uint256 _index = 0; _index < delegates.length; _index++) {

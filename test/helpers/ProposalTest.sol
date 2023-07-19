@@ -189,7 +189,7 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     vm.warp(_eta + 1);
   }
 
-  function _delegatesVoteOnBravoGovernor(uint256 _proposalId, uint8 _support) internal {
+  function _delegatesCastVoteOnBravoGovernor(uint256 _proposalId, uint8 _support) internal {
     require(_support < 3, "Invalid value for support");
 
     for (uint256 _index = 0; _index < delegates.length; _index++) {
@@ -271,7 +271,7 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     _jumpToActiveProposal(_newProposalId);
 
     // Have all delegates cast their weight with the specified support type.
-    _delegatesVoteOnBravoGovernor(_newProposalId, _voteType);
+    _delegatesCastVoteOnBravoGovernor(_newProposalId, _voteType);
 
     _jumpToVotingComplete(_newProposalId);
 
