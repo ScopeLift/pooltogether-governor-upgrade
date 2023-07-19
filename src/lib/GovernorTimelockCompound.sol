@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 // OpenZeppelin Contracts (last updated v4.6.0) (governance/extensions/GovernorTimelockCompound.sol)
 //
-// The Pooltogether Timelock is not compatible with the Governor Alpha Timelock interface. This
-// meant we had to fork the contracts where the timelock is needed and replace the Timelock
-// interface with the Pooltogether Timelock interface. Also, if Pooltogether decides to change the
-// Timelock then it must conform to the Pooltogether Timelock interface.
+// The PoolTogether Timelock is not compatible with the Governor Alpha Timelock interface. This
+// meant we had to fork the contracts that interact with the timelock and replace the Timelock
+// interface with the PoolTogether Timelock interface. Also, if PoolTogether decides to change the
+// Timelock in the future then it must conform to the PoolTogether Timelock interface.
 //
-// Pooltogether Timelock interface:
+// PoolTogether Timelock interface:
 // https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code#F1#L306
 // Governor Alpha Timelock interface:
 // https://github.com/compound-finance/compound-protocol/blob/a3214f67b73310d547e00fc578e8355911c9d376/contracts/Governance/GovernorAlpha.sol#L320
@@ -47,7 +47,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
     Timers.Timestamp timer;
   }
 
-  // The interface for this variable was changed to conform to the Pooltogether Timelock interface.
+  // The interface for this variable was changed to conform to the PoolTogether Timelock interface.
   //
   // Original openzeppelin:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L24
@@ -64,7 +64,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
    * @dev Set the timelock.
    */
   // The timelock interface was changed from the original Openzeppelin source to conform to the
-  // Pooltogether interface.
+  // PoolTogether interface.
   //
   // Original Openzeppelin source:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L37
@@ -237,7 +237,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
    * CAUTION: It is not recommended to change the timelock while there are other queued governance
    * proposals.
    */
-  // The interface for `newTimelock` was changed to conform to the Pooltogether Timelock interface.
+  // The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
   //
   // Original Openzeppelin source:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L182
@@ -245,7 +245,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
     _updateTimelock(newTimelock);
   }
 
-  // The interface for `newTimelock` was changed to conform to the Pooltogether Timelock interface.
+  // The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
   //
   // Original Openzeppelin source:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L186
