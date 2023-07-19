@@ -6,8 +6,10 @@
 // interface with the Pooltogether Timelock interface. Also, if Pooltogether decides to change the
 // Timelock then it must conform to the Pooltogether Timelock interface.
 //
-// Pooltogether Timelock interface: https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code#F1#L306
-// Governor Alpha Timelock interface: https://github.com/compound-finance/compound-protocol/blob/a3214f67b73310d547e00fc578e8355911c9d376/contracts/Governance/GovernorAlpha.sol#L320
+// Pooltogether Timelock interface:
+// https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code#F1#L306
+// Governor Alpha Timelock interface:
+// https://github.com/compound-finance/compound-protocol/blob/a3214f67b73310d547e00fc578e8355911c9d376/contracts/Governance/GovernorAlpha.sol#L320
 
 pragma solidity ^0.8.0;
 
