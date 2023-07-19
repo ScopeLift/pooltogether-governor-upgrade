@@ -13,7 +13,6 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
   //----------------- State and Setup ----------- //
 
   IGovernorAlpha governorAlpha = IGovernorAlpha(GOVERNOR_ALPHA);
-  IERC20 usdcToken = IERC20(USDC_ADDRESS);
   ICompoundTimelock timelock = ICompoundTimelock(payable(TIMELOCK));
   uint256 initialProposalCount;
   uint256 upgradeProposalId;
@@ -54,8 +53,9 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
   }
 
   function _randomERC20Token(uint256 _seed) internal view returns (IERC20 _token) {
-    if (_seed % 2 == 0) _token = IERC20(POOL_TOKEN);
-    if (_seed % 2 == 1) _token = usdcToken;
+    if (_seed % 3 == 0) _token = IERC20(POOL_TOKEN);
+    if (_seed % 3 == 1) _token = IERC20(PTAUSDC_ADDRESS);
+    if (_seed % 3 == 2) _token = IERC20(DAI_ADDRESS);
   }
 
   function _upgradeProposalStartBlock() internal view returns (uint256) {
@@ -114,5 +114,43 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     _passAndQueueUpgradeProposal();
     _jumpPastProposalEta();
     governorAlpha.execute(upgradeProposalId);
+  }
+
+  function _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+    address[] memory _targets,
+    uint256[] memory _values,
+    string[] memory _signatures,
+    bytes[] memory _calldatas,
+    bool isGovernorAlphaAdmin
+  ) internal {
+    // Submit the new proposal
+    vm.prank(PROPOSER);
+    uint256 _newProposalId =
+      governorAlpha.propose(_targets, _values, _signatures, _calldatas, "Proposal for old Governor");
+
+    // Pass and execute the new proposal
+    (,,, uint256 _startBlock, uint256 _endBlock,,,,) = governorAlpha.proposals(_newProposalId);
+    vm.roll(_startBlock + 1);
+    for (uint256 _index = 0; _index < delegates.length; _index++) {
+      vm.prank(delegates[_index].addr);
+      governorAlpha.castVote(_newProposalId, true);
+    }
+    vm.roll(_endBlock + 1);
+
+    if (!isGovernorAlphaAdmin) {
+      vm.expectRevert("Timelock::queueTransaction: Call must come from admin.");
+      governorAlpha.queue(_newProposalId);
+      return;
+    }
+
+    governorAlpha.queue(_newProposalId);
+    vm.roll(block.number + 1);
+    (,, uint256 _eta,,,,,,) = governorAlpha.proposals(_newProposalId);
+    vm.warp(_eta + 1);
+
+    governorAlpha.execute(_newProposalId);
+
+    // Ensure the new proposal is now executed
+    assertEq(governorAlpha.state(_newProposalId), EXECUTED);
   }
 }

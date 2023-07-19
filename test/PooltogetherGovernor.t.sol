@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.18;
 
+import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
+
 import {IPOOL} from "src/interfaces/IPOOL.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 import {PooltogetherGovernorTest} from "test/helpers/PooltogetherGovernorTest.sol";
@@ -26,7 +28,7 @@ contract Constructor is PooltogetherGovernorTest {
 }
 
 contract Propose is ProposalTest {
-  function test_Proposal() public {
+  function test_GovernorUpgradeProposalIsSubmittedCorrectly() public {
     // Proposal has been recorded
     assertEq(governorAlpha.proposalCount(), initialProposalCount + 1);
 
@@ -55,7 +57,7 @@ contract Propose is ProposalTest {
     assertEq(_calldatas[1], "");
   }
 
-  function test_proposalActiveAfterDelay() public {
+  function test_UpgradeProposalActiveAfterDelay() public {
     _jumpToActiveUpgradeProposal();
 
     // Ensure proposal has become active the block after the voting delay
@@ -63,7 +65,7 @@ contract Propose is ProposalTest {
     assertEq(_state, ACTIVE);
   }
 
-  function testFuzz_ProposerCanCastVote(bool _willSupport) public {
+  function testFuzz_UpgradeProposerCanCastVote(bool _willSupport) public {
     _jumpToActiveUpgradeProposal();
     uint256 _proposerVotes = IPOOL(POOL_TOKEN).getPriorVotes(PROPOSER, _upgradeProposalStartBlock());
 
@@ -76,7 +78,7 @@ contract Propose is ProposalTest {
     assertEq(_receipt.votes, _proposerVotes);
   }
 
-  function test_ProposalSucceedsWhenAllDelegatesVoteFor() public {
+  function test_UpgradeProposalSucceedsWhenAllDelegatesVoteFor() public {
     _passUpgradeProposal();
 
     // Ensure proposal state is now succeeded
@@ -84,7 +86,7 @@ contract Propose is ProposalTest {
     assertEq(_state, SUCCEEDED);
   }
 
-  function test_ProposalDefeatedWhenAllDelegatesVoteAgainst() public {
+  function test_UpgradeProposalDefeatedWhenAllDelegatesVoteAgainst() public {
     _defeatUpgradeProposal();
 
     // Ensure proposal state is now defeated
@@ -92,7 +94,7 @@ contract Propose is ProposalTest {
     assertEq(_state, DEFEATED);
   }
 
-  function test_ProposalCanBeQueuedAfterSucceeding() public {
+  function test_UpgradeProposalCanBeQueuedAfterSucceeding() public {
     _passUpgradeProposal();
     governorAlpha.queue(upgradeProposalId);
 
@@ -121,7 +123,7 @@ contract Propose is ProposalTest {
     }
   }
 
-  function test_ProposalCanBeExecutedAfterDelay() public {
+  function test_UpgradeProposalCanBeExecutedAfterDelay() public {
     _passAndQueueUpgradeProposal();
     _jumpPastProposalEta();
 
@@ -134,5 +136,279 @@ contract Propose is ProposalTest {
 
     // Ensure the governorBravo is now the admin of the timelock
     assertEq(timelock.admin(), address(governorBravo));
+  }
+
+  ////
+  // Post proposal tests
+  ////
+  function testFuzz_OldGovernorSendsETHAfterProposalIsDefeated(uint128 _amount, address _receiver)
+    public
+  {
+    _assumeReceiver(_receiver);
+
+    // Counter-intuitively, the Governor (not the Timelock) must hold the ETH.
+    // See the deployed GovernorAlpha, line 204:
+    //   https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code
+    // The governor transfers ETH to the Timelock in the process of executing
+    // the proposal. The Timelock then just passes that ETH along.
+    vm.deal(address(governorAlpha), _amount);
+
+    uint256 _receiverETHBalance = _receiver.balance;
+    uint256 _governorETHBalance = address(governorAlpha).balance;
+
+    // Defeat the proposal to upgrade the Governor
+    _defeatUpgradeProposal();
+
+    // Create a new proposal to send the ETH.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    _targets[0] = _receiver;
+    _values[0] = _amount;
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      new string[](1), // No signature needed for an ETH send.
+      new bytes[](1), // No calldata needed for an ETH send.
+      true // GovernorAlpha is still the Timelock admin.
+    );
+
+    // Ensure the ETH has been transferred to the receiver
+    assertEq(
+      address(governorAlpha).balance,
+      _governorETHBalance - _amount,
+      "Governor alpha ETH balance is incorrect"
+    );
+    assertEq(_receiver.balance, _receiverETHBalance + _amount, "Receiver ETH balance is incorrect");
+  }
+
+  function testFuzz_OldGovernorCannotSendETHAfterProposalSucceeds(
+    uint256 _amount,
+    address _receiver
+  ) public {
+    _assumeReceiver(_receiver);
+
+    // Counter-intuitively, the Governor must hold the ETH, not the Timelock.
+    // See the deployed GovernorAlpha, line 204:
+    //   https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code
+    // The governor transfers ETH to the Timelock in the process of executing
+    // the proposal. The Timelock then just passes that ETH along.
+    vm.deal(address(governorAlpha), _amount);
+
+    uint256 _receiverETHBalance = _receiver.balance;
+    uint256 _governorETHBalance = address(governorAlpha).balance;
+
+    // Pass and execute the proposal to upgrade the Governor
+    _upgradeToBravoGovernor();
+
+    // Create a new proposal to send the ETH.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    _targets[0] = _receiver;
+    _values[0] = _amount;
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      new string[](1), // No signature needed for an ETH send.
+      new bytes[](1), // No calldata needed for an ETH send.
+      false // GovernorAlpha is not the Timelock admin.
+    );
+
+    // Ensure no ETH has been transferred to the receiver
+    assertEq(address(governorAlpha).balance, _governorETHBalance);
+    assertEq(_receiver.balance, _receiverETHBalance);
+  }
+
+  function testFuzz_OldGovernorSendsTokenAfterProposalIsDefeated(
+    uint256 _amount,
+    address _receiver,
+    uint256 _seed
+  ) public {
+    _assumeReceiver(_receiver);
+    IERC20 _token = _randomERC20Token(_seed);
+
+    uint256 _receiverTokenBalance = _token.balanceOf(_receiver);
+    uint256 _timelockTokenBalance = _token.balanceOf(TIMELOCK);
+    // bound by the number of tokens the timelock currently controls
+    _amount = bound(_amount, 0, _timelockTokenBalance);
+
+    // Defeat the proposal to upgrade the Governor
+    _defeatUpgradeProposal();
+
+    // Craft a new proposal to send the token.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    string[] memory _signatures = new string [](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    _targets[0] = address(_token);
+    _values[0] = 0;
+    _signatures[0] = "transfer(address,uint256)";
+    _calldatas[0] = abi.encode(_receiver, _amount);
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      _signatures,
+      _calldatas,
+      true // GovernorAlpha is still the Timelock admin.
+    );
+
+    // Ensure the tokens have been transferred from the timelock to the receiver.
+    assertEq(
+      _token.balanceOf(TIMELOCK),
+      _timelockTokenBalance - _amount,
+      "Timelock token balance is incorrect"
+    );
+    assertEq(
+      _token.balanceOf(_receiver),
+      _receiverTokenBalance + _amount,
+      "Receiver token balance is incorrect"
+    );
+  }
+
+  function testFuzz_OldGovernorSendsSTETHAfterProposalIsDefeated(
+    uint256 _amount,
+    address _receiver,
+    uint256 _seed
+  ) public {
+    _assumeReceiver(_receiver);
+    IERC20 _token = IERC20(STETH_ADDRESS);
+
+    uint256 _receiverTokenBalance = _token.balanceOf(_receiver);
+    uint256 _timelockTokenBalance = _token.balanceOf(TIMELOCK);
+    // Bound by the number of tokens the timelock currently controls
+    // Steth suffers from an off by 2 issues which we have to correct
+    // https://docs.lido.fi/guides/steth-integration-guide#1-2-wei-corner-case
+    _amount = bound(_amount, 2, _timelockTokenBalance - 2);
+
+    // Defeat the proposal to upgrade the Governor
+    _defeatUpgradeProposal();
+
+    // Craft a new proposal to send the token.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    string[] memory _signatures = new string [](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    _targets[0] = address(_token);
+    _values[0] = 0;
+    _signatures[0] = "transfer(address,uint256)";
+    _calldatas[0] = abi.encode(_receiver, _amount);
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      _signatures,
+      _calldatas,
+      true // GovernorAlpha is still the Timelock admin.
+    );
+
+    // Ensure the tokens have been transferred from the timelock to the receiver.
+    //
+    // Add and subtract 2 to handle the off by 2 error
+    assertGe(
+      _token.balanceOf(TIMELOCK),
+      _timelockTokenBalance - _amount - 2,
+      "Timelock token balance is to low"
+    );
+    assertLe(
+      _token.balanceOf(TIMELOCK),
+      _timelockTokenBalance - _amount + 2,
+      "Timelock token balance is to high"
+    );
+
+    assertGe(
+      _token.balanceOf(_receiver),
+      _receiverTokenBalance + _amount - 2,
+      "Receiver token balance is too low"
+    );
+    assertLe(
+      _token.balanceOf(_receiver),
+      _receiverTokenBalance + _amount + 2,
+      "Receiver token balance is too high"
+    );
+  }
+
+  function testFuzz_OldGovernorCanNotSendTokensAfterUpgradeCompletes(
+    uint256 _amount,
+    address _receiver,
+    uint256 _seed
+  ) public {
+    _assumeReceiver(_receiver);
+    IERC20 _token = _randomERC20Token(_seed);
+
+    uint256 _receiverTokenBalance = _token.balanceOf(_receiver);
+    uint256 _timelockTokenBalance = _token.balanceOf(TIMELOCK);
+    // bound by the number of tokens the timelock currently controls
+    _amount = bound(_amount, 0, _timelockTokenBalance);
+
+    // Pass and execute the proposal to upgrade the Governor
+    _upgradeToBravoGovernor();
+
+    // Craft a new proposal to send the token.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    string[] memory _signatures = new string [](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    _targets[0] = address(_token);
+    _values[0] = 0;
+    _signatures[0] = "transfer(address,uint256)";
+    _calldatas[0] = abi.encode(_receiver, _amount);
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      _signatures,
+      _calldatas,
+      false // GovernorAlpha is not the Timelock admin anymore.
+    );
+
+    // Ensure no tokens have been transferred from the timelock to the receiver.
+    assertEq(_token.balanceOf(TIMELOCK), _timelockTokenBalance, "Timelock balance is incorrect");
+    assertEq(_token.balanceOf(_receiver), _receiverTokenBalance, "Receiver balance is incorrect");
+  }
+
+  // Adding StEth to the _randomERC20 function causes other tests to fail so we pulled it out into a
+  // separate test
+  function testFuzz_OldGovernorCanNotSendSTETHAfterUpgradeCompletes(
+    uint256 _amount,
+    address _receiver,
+    uint256 _seed
+  ) public {
+    _assumeReceiver(_receiver);
+    IERC20 _token = IERC20(STETH_ADDRESS);
+
+    uint256 _receiverTokenBalance = _token.balanceOf(_receiver);
+    uint256 _timelockTokenBalance = _token.balanceOf(TIMELOCK);
+    _amount = bound(_amount, 0, _timelockTokenBalance);
+
+    // Pass and execute the proposal to upgrade the Governor
+    _upgradeToBravoGovernor();
+
+    // Craft a new proposal to send the token.
+    address[] memory _targets = new address[](1);
+    uint256[] memory _values = new uint256[](1);
+    string[] memory _signatures = new string [](1);
+    bytes[] memory _calldatas = new bytes[](1);
+
+    _targets[0] = address(_token);
+    _values[0] = 0;
+    _signatures[0] = "transfer(address,uint256)";
+    _calldatas[0] = abi.encode(_receiver, _amount);
+
+    _queueAndVoteAndExecuteProposalWithAlphaGovernor(
+      _targets,
+      _values,
+      _signatures,
+      _calldatas,
+      false // GovernorAlpha is not the Timelock admin anymore.
+    );
+
+    // Ensure no tokens have been transferred from the timelock to the receiver.
+    assertEq(_token.balanceOf(TIMELOCK), _timelockTokenBalance, "Timelock balance is incorrect");
+    assertEq(_token.balanceOf(_receiver), _receiverTokenBalance, "Receiver balance is incorrect");
   }
 }
