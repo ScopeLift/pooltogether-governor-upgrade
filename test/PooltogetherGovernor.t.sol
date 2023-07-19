@@ -269,11 +269,9 @@ contract Propose is ProposalTest {
     );
   }
 
-  function testFuzz_OldGovernorSendsSTETHAfterProposalIsDefeated(
-    uint256 _amount,
-    address _receiver,
-    uint256 _seed
-  ) public {
+  function testFuzz_OldGovernorSendsSTETHAfterProposalIsDefeated(uint256 _amount, address _receiver)
+    public
+  {
     _assumeReceiver(_receiver);
     IERC20 _token = IERC20(STETH_ADDRESS);
 
@@ -376,8 +374,7 @@ contract Propose is ProposalTest {
   // separate test
   function testFuzz_OldGovernorCanNotSendSTETHAfterUpgradeCompletes(
     uint256 _amount,
-    address _receiver,
-    uint256 _seed
+    address _receiver
   ) public {
     _assumeReceiver(_receiver);
     IERC20 _token = IERC20(STETH_ADDRESS);

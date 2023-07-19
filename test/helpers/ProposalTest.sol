@@ -58,7 +58,7 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
     assumeNoPrecompiles(_receiver);
   }
 
-  function _randomERC20Token(uint256 _seed) internal view returns (IERC20 _token) {
+  function _randomERC20Token(uint256 _seed) internal pure returns (IERC20 _token) {
     if (_seed % 3 == 0) _token = IERC20(POOL_TOKEN);
     if (_seed % 3 == 1) _token = IERC20(PTAUSDC_ADDRESS);
     if (_seed % 3 == 2) _token = IERC20(DAI_ADDRESS);
