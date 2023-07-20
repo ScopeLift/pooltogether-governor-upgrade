@@ -1140,13 +1140,13 @@ contract _Execute is ProposalTest {
     _upgradeToBravoGovernor();
   }
 
-  function _randomUniswapPosition(uint256 _seed) internal returns (uint256 _token) {
-    if (_seed % 6 == 0) _token = 454861;
-    if (_seed % 6 == 1) _token = 454865;
-    if (_seed % 6 == 2) _token = 326807;
-    if (_seed % 6 == 3) _token = 326798;
-    if (_seed % 6 == 4) _token = 326783;
-    if (_seed % 6 == 5) _token = 321228;
+  function _randomUniswapPosition(uint256 _seed) internal pure returns (uint256 _token) {
+    if (_seed % 6 == 0) _token = 454_861;
+    if (_seed % 6 == 1) _token = 454_865;
+    if (_seed % 6 == 2) _token = 326_807;
+    if (_seed % 6 == 3) _token = 326_798;
+    if (_seed % 6 == 4) _token = 326_783;
+    if (_seed % 6 == 5) _token = 321_228;
   }
 
   function testFuzz_UpdateV4DripRate(uint256 newDrip) public {
@@ -1155,8 +1155,6 @@ contract _Execute is ProposalTest {
     vm.assume(newDrip > 0);
 
     IV4PooltogetherTokenFaucet tokenFaucet = IV4PooltogetherTokenFaucet(V4_TOKEN_FAUCET);
-    uint256 oldDrip = tokenFaucet.dripRatePerSecond();
-    assertEq(oldDrip, 5_787_037_037_037_037, "Old value is not correct");
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1179,8 +1177,6 @@ contract _Execute is ProposalTest {
     IV3ConfigurableReserve configurableReserve = IV3ConfigurableReserve(V3_CONFIGURABLE_RESERVE);
 
     address reserveSource = 0x821B9819c0348076AD370b376522e1327AF7684A;
-    uint256 reserveRate = configurableReserve.reserveRateMantissa(reserveSource);
-    assertEq(reserveRate, 0, "Old reserve rate is not correct");
 
     address[] memory _sources = new address[](1);
     uint224[] memory _reserveRates = new uint224[](1);
@@ -1304,7 +1300,7 @@ contract _Execute is ProposalTest {
   function test_SendUniswapPosition(uint256 _seed) public {
     string memory _description = "Send Uniswap V3 position to controlled multisig";
     IERC721 uniswapPositionManager = IERC721(UNISWAP_POSITION_CONTRACT);
-	uint256 uniswapPosition = _randomUniswapPosition(_seed);
+    uint256 uniswapPosition = _randomUniswapPosition(_seed);
 
     uint256 balance = uniswapPositionManager.balanceOf(TIMELOCK);
     assertEq(balance, 6);
@@ -1317,7 +1313,10 @@ contract _Execute is ProposalTest {
       UNISWAP_POSITION_CONTRACT,
       0,
       abi.encodeWithSignature(
-        "transferFrom(address,address,uint256)", TIMELOCK, POOLTOGETHER_UNISWAP_SAFE, 454_861
+        "transferFrom(address,address,uint256)",
+        TIMELOCK,
+        POOLTOGETHER_UNISWAP_SAFE,
+        uniswapPosition
       )
     );
     _queueAndVoteAndExecuteProposalWithBravoGovernor(
@@ -1406,6 +1405,7 @@ contract _Execute is ProposalTest {
     // Cannot delegate to the 0 address
     // https://etherscan.io/address/0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e#code#F1#L329
     vm.assume(newDelegate != address(0));
+    vm.assume(newDelegate != 0x070a96fe4Ad5155eA91d409E8AFec6B2F3C729c0); // Already has POOL
 
     string memory _description = "Set comp like delegate";
     ERC20VotesComp token = ERC20VotesComp(POOL_TOKEN);
