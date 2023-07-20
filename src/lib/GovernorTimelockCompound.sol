@@ -17,7 +17,7 @@ import {Governor} from "flexible-voting/src/GovernorCountingFractional.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {IGovernorTimelock} from
   "@openzeppelin/contracts/governance/extensions/IGovernorTimelock.sol";
-import {ITimelockAlpha} from "src/interfaces/ITimelockAlpha.sol";
+import {IPoolTogetherTimelock} from "src/interfaces/IPoolTogetherTimelock.sol";
 import {Timers} from "@openzeppelin/contracts/utils/Timers.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
@@ -51,7 +51,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   //
   // Original openzeppelin:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L24
-  ITimelockAlpha private _timelock;
+  IPoolTogetherTimelock private _timelock;
 
   mapping(uint256 => ProposalTimelock) private _proposalTimelocks;
 
@@ -68,7 +68,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   //
   // Original Openzeppelin source:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L37
-  constructor(ITimelockAlpha timelockAddress) {
+  constructor(IPoolTogetherTimelock timelockAddress) {
     _updateTimelock(timelockAddress);
   }
 
@@ -169,7 +169,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
     uint256 eta = proposalEta(proposalId);
     require(eta > 0, "GovernorTimelockCompound: proposal not yet queued");
     // In the original contract, the _timelock is not casted to an address. Failing to cast it
-    // causes a compile error "Explicit type conversion not allowed from "contract ITimelockAlpha"
+    // causes a compile error "Explicit type conversion not allowed from "contract IPoolTogetherTimelock"
     // to "address payable".". We explicitly cast to an address to solve this error.
     //
     // Original Openzeppelin line:
@@ -241,7 +241,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   //
   // Original Openzeppelin source:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L182
-  function updateTimelock(ITimelockAlpha newTimelock) external virtual onlyGovernance {
+  function updateTimelock(IPoolTogetherTimelock newTimelock) external virtual onlyGovernance {
     _updateTimelock(newTimelock);
   }
 
@@ -249,7 +249,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   //
   // Original Openzeppelin source:
   // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L186
-  function _updateTimelock(ITimelockAlpha newTimelock) private {
+  function _updateTimelock(IPoolTogetherTimelock newTimelock) private {
     emit TimelockChange(address(_timelock), address(newTimelock));
     _timelock = newTimelock;
   }

@@ -14,7 +14,7 @@ import {ICompoundTimelock} from
   "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
 import {GovernorSettings} from "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 
-import {ITimelockAlpha} from "src/interfaces/ITimelockAlpha.sol";
+import {IPoolTogetherTimelock} from "src/interfaces/IPoolTogetherTimelock.sol";
 import {GovernorTimelockCompound} from "src/lib/GovernorTimelockCompound.sol";
 
 /// @notice The upgraded Pooltogether Governor: Bravo compatible and built with OpenZeppelin.
@@ -32,8 +32,8 @@ contract PooltogetherGovernor is
   /// @notice The address of the existing Pooltogether DAO Timelock on Ethereum mainnet through
   /// which
   /// this Governor executes transactions.
-  ITimelockAlpha private constant TIMELOCK =
-    ITimelockAlpha(payable(0x42cd8312D2BCe04277dD5161832460e95b24262E));
+  IPoolTogetherTimelock private constant TIMELOCK =
+    IPoolTogetherTimelock(payable(0x42cd8312D2BCe04277dD5161832460e95b24262E));
 
   /// @notice Human readable name of this Governor.
   string private constant GOVERNOR_NAME = "Pooltogether Governor Bravo";

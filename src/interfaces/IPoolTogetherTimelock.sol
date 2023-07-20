@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.10;
 
-interface ITimelockAlpha {
+interface IPoolTogetherTimelock {
   event CancelTransaction(
     bytes32 indexed txHash,
     address indexed target,
