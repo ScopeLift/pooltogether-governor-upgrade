@@ -169,7 +169,8 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
     uint256 eta = proposalEta(proposalId);
     require(eta > 0, "GovernorTimelockCompound: proposal not yet queued");
     // In the original contract, the _timelock is not casted to an address. Failing to cast it
-    // causes a compile error "Explicit type conversion not allowed from "contract IPoolTogetherTimelock"
+    // causes a compile error "Explicit type conversion not allowed from "contract
+    // IPoolTogetherTimelock"
     // to "address payable".". We explicitly cast to an address to solve this error.
     //
     // Original Openzeppelin line:
