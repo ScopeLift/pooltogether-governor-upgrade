@@ -926,7 +926,7 @@ contract CastVoteWithReasonAndParams is ProposalTest {
     _upgradeToBravoGovernor();
 
     (newProposalId,,,,) = _submitTokenSendProposalToGovernorBravo(
-      address(usdcToken), usdcToken.balanceOf(TIMELOCK), makeAddr("receiver for FlexVoting tests")
+      address(DAI_ADDRESS), IERC20(DAI_ADDRESS).balanceOf(TIMELOCK), makeAddr("receiver for FlexVoting tests")
     );
 
     _jumpToActiveProposal(newProposalId);
