@@ -4,16 +4,18 @@ pragma solidity ^0.8.18;
 import {
   Governor, GovernorCountingFractional
 } from "flexible-voting/src/GovernorCountingFractional.sol";
+import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import {
   ERC20VotesComp,
   GovernorVotesComp
 } from "@openzeppelin/contracts/governance/extensions/GovernorVotesComp.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
-import {
-  GovernorTimelockCompound,
-  ICompoundTimelock
-} from "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
+import {ICompoundTimelock} from
+  "@openzeppelin/contracts/governance/extensions/GovernorTimelockCompound.sol";
 import {GovernorSettings} from "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
+
+import {IPoolTogetherTimelock} from "src/interfaces/IPoolTogetherTimelock.sol";
+import {GovernorTimelockCompound} from "src/lib/GovernorTimelockCompound.sol";
 
 /// @notice The upgraded Pooltogether Governor: Bravo compatible and built with OpenZeppelin.
 contract PooltogetherGovernor is
@@ -30,8 +32,8 @@ contract PooltogetherGovernor is
   /// @notice The address of the existing Pooltogether DAO Timelock on Ethereum mainnet through
   /// which
   /// this Governor executes transactions.
-  ICompoundTimelock private constant TIMELOCK =
-    ICompoundTimelock(payable(0x42cd8312D2BCe04277dD5161832460e95b24262E));
+  IPoolTogetherTimelock private constant TIMELOCK =
+    IPoolTogetherTimelock(payable(0x42cd8312D2BCe04277dD5161832460e95b24262E));
 
   /// @notice Human readable name of this Governor.
   string private constant GOVERNOR_NAME = "Pooltogether Governor Bravo";
