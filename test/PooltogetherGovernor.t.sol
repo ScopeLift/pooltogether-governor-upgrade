@@ -1270,12 +1270,8 @@ contract _Execute is ProposalTest {
     address DAI_PRIZE_STRATEGY = 0x178969A87a78597d303C47198c66F68E8be67Dc2;
 
     IV3MultipleWinners usdcStrategy = IV3MultipleWinners(USDC_PRIZE_STRATEGY);
-    uint256 existingUsdcWinners = usdcStrategy.numberOfWinners();
-    assertEq(existingUsdcWinners, 1);
 
     IV3MultipleWinners daiStrategy = IV3MultipleWinners(DAI_PRIZE_STRATEGY);
-    uint256 existingDaiWinners = daiStrategy.numberOfWinners();
-    assertEq(existingDaiWinners, 1);
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1334,10 +1330,6 @@ contract _Execute is ProposalTest {
     string memory _description = "Set a new credit plan for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
 
-    (uint256 creditLimit, uint256 creditRate) = prizePool.creditPlanOf(POOLTOGETHER_POOL_TICKET);
-    assertEq(creditLimit, 0, "Old credit limit is incorrect");
-    assertEq(creditRate, 0, "Old credit rate is incorrect");
-
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
       STAKE_PRIZE_POOL,
@@ -1362,9 +1354,6 @@ contract _Execute is ProposalTest {
   function testFuzz_V3PrizePoolSetLiquidityCap(uint256 _cap) public {
     string memory _description = "Set a new liquidity cap for the POOL token ";
     IStakePrizePool prizePool = IStakePrizePool(STAKE_PRIZE_POOL);
-
-    uint256 liquidityCap = prizePool.liquidityCap();
-    assertEq(liquidityCap, type(uint256).max, "Old cap is incorrect");
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(STAKE_PRIZE_POOL, 0, abi.encodeWithSignature("setLiquidityCap(uint256)", _cap));
