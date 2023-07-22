@@ -8,9 +8,9 @@ import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
 
 import {Propose} from "script/Propose.s.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
-import {PooltogetherGovernorTest} from "test/helpers/PooltogetherGovernorTest.sol";
+import {PoolTogetherGovernorTest} from "test/helpers/PoolTogetherGovernorTest.sol";
 
-abstract contract ProposalTest is PooltogetherGovernorTest {
+abstract contract ProposalTest is PoolTogetherGovernorTest {
   //----------------- State and Setup ----------- //
 
   IGovernorAlpha governorAlpha = IGovernorAlpha(GOVERNOR_ALPHA);
@@ -32,7 +32,7 @@ abstract contract ProposalTest is PooltogetherGovernorTest {
   uint8 constant ABSTAIN = 2;
 
   function setUp() public virtual override {
-    PooltogetherGovernorTest.setUp();
+    PoolTogetherGovernorTest.setUp();
 
     initialProposalCount = governorAlpha.proposalCount();
 

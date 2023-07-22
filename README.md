@@ -1,6 +1,6 @@
-# Pooltogether Governor Bravo
+# PoolTogether Governor Bravo
 
-An upgrade to a "Bravo" compatible Governor for the Pooltogether DAO, built using the OpenZeppelin implemented and [Flexible Voting](https://github.com/ScopeLift/flexible-voting).
+An upgrade to a "Bravo" compatible Governor for the PoolTogether DAO, built using the OpenZeppelin implemented and [Flexible Voting](https://github.com/ScopeLift/flexible-voting).
 
 #### Getting started
 
@@ -46,7 +46,7 @@ scopelint check
 
 ## Scripts
 
-- `script/Deploy.s.sol` - Deploys the PooltogetherGovernor contract
+- `script/Deploy.s.sol` - Deploys the PoolTogetherGovernor contract
 
 To test these scripts locally, start a local fork with anvil:
 
