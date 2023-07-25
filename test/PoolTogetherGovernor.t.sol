@@ -1412,6 +1412,10 @@ contract _Execute is ProposalTest {
 
     vm.warp(10);
     uint256 newDelegateCurrentVotes = token.getCurrentVotes(newDelegate);
-    assertEq(newDelegateCurrentVotes, currentVotes + 506_647_255_990_808_587_266_180, "New delegate current votes");
+    assertEq(
+      newDelegateCurrentVotes,
+      currentVotes + 506_647_255_990_808_587_266_180,
+      "New delegate current votes"
+    );
   }
 }
