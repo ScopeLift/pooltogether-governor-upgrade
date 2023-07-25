@@ -1,0 +1,26 @@
+# Ignore node stuff
+node_modules/
+yarn-error.log
+
+.DS_Store
+.vscode
+
+# Build files
+artifacts/
+build/
+cache/
+dist/
+deployments/*/.contracts
+deployments/*/*/verify
+deployments/*/*/aliases.json
+forge/cache
+forge/out
+
+.env
+coverage/
+coverage.json
+typechain/
+
+test-results.json
+scenario-results.json
+

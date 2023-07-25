@@ -1,0 +1,8 @@
+artifacts
+build
+cache
+coverage
+deployments/*/.contracts
+deployments/*/*/*.json
+dist
+SPEC.md
