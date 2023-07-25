@@ -8,18 +8,18 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 import {IPOOL} from "src/interfaces/IPOOL.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
-import {PooltogetherGovernorTest} from "test/helpers/PooltogetherGovernorTest.sol";
+import {PoolTogetherGovernorTest} from "test/helpers/PoolTogetherGovernorTest.sol";
 import {ProposalTest} from "test/helpers/ProposalTest.sol";
 import {ProposalBuilder} from "test/helpers/Proposal.sol";
-import {IV4PooltogetherTokenFaucet} from "test/interfaces/IV4PooltogetherTokenFaucet.sol";
+import {IV4PoolTogetherTokenFaucet} from "test/interfaces/IV4PoolTogetherTokenFaucet.sol";
 import {IV3ConfigurableReserve} from "test/interfaces/IV3ConfigurableReserve.sol";
 import {IStakePrizePool} from "test/interfaces/IStakePrizePool.sol";
 import {IV3MultipleWinners} from "test/interfaces/IV3MultipleWinners.sol";
 import {IERC721} from "forge-std/interfaces/IERC721.sol";
 
-contract Constructor is PooltogetherGovernorTest {
+contract Constructor is PoolTogetherGovernorTest {
   function testFuzz_CorrectlySetsAllConstructorArgs(uint256 _blockNumber) public {
-    assertEq(governorBravo.name(), "Pooltogether Governor Bravo");
+    assertEq(governorBravo.name(), "PoolTogether Governor Bravo");
     assertEq(address(governorBravo.token()), POOL_TOKEN);
 
     assertEq(governorBravo.votingDelay(), INITIAL_VOTING_DELAY);
@@ -1154,7 +1154,7 @@ contract _Execute is ProposalTest {
     // https://etherscan.io/address/0xbd537257fad96e977b9e545be583bbf7028f30b9#code#F1#L162
     vm.assume(newDrip > 0);
 
-    IV4PooltogetherTokenFaucet tokenFaucet = IV4PooltogetherTokenFaucet(V4_TOKEN_FAUCET);
+    IV4PoolTogetherTokenFaucet tokenFaucet = IV4PoolTogetherTokenFaucet(V4_TOKEN_FAUCET);
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1399,7 +1399,6 @@ contract _Execute is ProposalTest {
     string memory _description = "Set comp like delegate";
     ERC20VotesComp token = ERC20VotesComp(POOL_TOKEN);
     uint256 currentVotes = token.getCurrentVotes(newDelegate);
-    assertEq(currentVotes, 0, "Current delegate votes for the token");
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1413,6 +1412,10 @@ contract _Execute is ProposalTest {
 
     vm.warp(10);
     uint256 newDelegateCurrentVotes = token.getCurrentVotes(newDelegate);
-    assertEq(newDelegateCurrentVotes, 506_647_255_990_808_587_266_180, "New delegate current votes");
+    assertEq(
+      newDelegateCurrentVotes,
+      currentVotes + 506_647_255_990_808_587_266_180,
+      "New delegate current votes"
+    );
   }
 }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.18;
 
 import {Script} from "forge-std/Script.sol";
 import {DeployInput} from "script/DeployInput.sol";
-import {PooltogetherGovernor} from "src/PooltogetherGovernor.sol";
+import {PoolTogetherGovernor} from "src/PoolTogetherGovernor.sol";
 
 contract Deploy is DeployInput, Script {
   uint256 deployerPrivateKey;
@@ -15,10 +15,10 @@ contract Deploy is DeployInput, Script {
     );
   }
 
-  function run() public returns (PooltogetherGovernor) {
+  function run() public returns (PoolTogetherGovernor) {
     vm.startBroadcast(deployerPrivateKey);
-    PooltogetherGovernor _governor =
-    new PooltogetherGovernor(INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD);
+    PoolTogetherGovernor _governor =
+    new PoolTogetherGovernor(INITIAL_VOTING_DELAY, INITIAL_VOTING_PERIOD, INITIAL_PROPOSAL_THRESHOLD);
     vm.stopBroadcast();
 
     return _governor;

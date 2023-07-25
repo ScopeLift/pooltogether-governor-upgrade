@@ -17,8 +17,8 @@ import {GovernorSettings} from "@openzeppelin/contracts/governance/extensions/Go
 import {IPoolTogetherTimelock} from "src/interfaces/IPoolTogetherTimelock.sol";
 import {GovernorTimelockCompound} from "src/lib/GovernorTimelockCompound.sol";
 
-/// @notice The upgraded Pooltogether Governor: Bravo compatible and built with OpenZeppelin.
-contract PooltogetherGovernor is
+/// @notice The upgraded PoolTogether Governor: Bravo compatible and built with OpenZeppelin.
+contract PoolTogetherGovernor is
   GovernorCountingFractional,
   GovernorVotesComp,
   GovernorTimelockCompound,
@@ -29,14 +29,14 @@ contract PooltogetherGovernor is
   ERC20VotesComp private constant POOL_TOKEN =
     ERC20VotesComp(0x0cEC1A9154Ff802e7934Fc916Ed7Ca50bDE6844e);
 
-  /// @notice The address of the existing Pooltogether DAO Timelock on Ethereum mainnet through
+  /// @notice The address of the existing PoolTogether DAO Timelock on Ethereum mainnet through
   /// which
   /// this Governor executes transactions.
   IPoolTogetherTimelock private constant TIMELOCK =
     IPoolTogetherTimelock(payable(0x42cd8312D2BCe04277dD5161832460e95b24262E));
 
   /// @notice Human readable name of this Governor.
-  string private constant GOVERNOR_NAME = "Pooltogether Governor Bravo";
+  string private constant GOVERNOR_NAME = "PoolTogether Governor Bravo";
 
   /// @notice The number of POOL (in "wei") that must participate in a vote for it to meet quorum
   /// threshold.

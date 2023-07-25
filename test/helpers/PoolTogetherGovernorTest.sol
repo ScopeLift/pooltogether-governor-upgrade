@@ -7,10 +7,10 @@ import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {Deploy} from "script/Deploy.s.sol";
 import {DeployInput} from "script/DeployInput.sol";
 import {IPOOL} from "src/interfaces/IPOOL.sol";
-import {PooltogetherGovernor} from "src/PooltogetherGovernor.sol";
+import {PoolTogetherGovernor} from "src/PoolTogetherGovernor.sol";
 import {Constants} from "test/Constants.sol";
 
-abstract contract PooltogetherGovernorTest is Test, DeployInput, Constants {
+abstract contract PoolTogetherGovernorTest is Test, DeployInput, Constants {
   using FixedPointMathLib for uint256;
 
   IPOOL poolToken = IPOOL(POOL_TOKEN);
@@ -23,7 +23,7 @@ abstract contract PooltogetherGovernorTest is Test, DeployInput, Constants {
 
   Delegate[] delegates;
 
-  PooltogetherGovernor governorBravo;
+  PoolTogetherGovernor governorBravo;
 
   function setUp() public virtual {
     // The latest block when this test was written. If you update the fork block

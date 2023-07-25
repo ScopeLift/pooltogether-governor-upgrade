@@ -1,7 +1,7 @@
 pragma solidity ^0.8.18;
 
 // Generated with `cast interface 0xBD537257fAd96e977b9E545bE583bbF7028F30b9`
-interface IV4PooltogetherTokenFaucet {
+interface IV4PoolTogetherTokenFaucet {
   event Claimed(address indexed user, uint256 newTokens);
   event Deposited(address indexed user, uint256 amount);
   event DripRateChanged(uint256 dripRatePerSecond);
