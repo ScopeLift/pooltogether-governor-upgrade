@@ -50,7 +50,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   // The interface for this variable was changed to conform to the PoolTogether Timelock interface.
   //
   // Original openzeppelin:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L24
+  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L31
   IPoolTogetherTimelock private _timelock;
 
   mapping(uint256 => ProposalTimelock) private _proposalTimelocks;
@@ -67,7 +67,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   // PoolTogether interface.
   //
   // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L37
+  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L43
   constructor(IPoolTogetherTimelock timelockAddress) {
     _updateTimelock(timelockAddress);
   }
@@ -94,7 +94,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   // Openzeppelin contract.
   //
   // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L61
+  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L67
   function state(uint256 proposalId)
     public
     view
@@ -174,7 +174,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
     // to "address payable".". We explicitly cast to an address to solve this error.
     //
     // Original Openzeppelin line:
-    // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L123
+    // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L128
     Address.sendValue(payable(address(_timelock)), msg.value);
     for (uint256 i = 0; i < targets.length; ++i) {
       _timelock.executeTransaction(targets[i], values[i], "", calldatas[i], eta);
@@ -241,7 +241,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   // The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
   //
   // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L182
+  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L185
   function updateTimelock(IPoolTogetherTimelock newTimelock) external virtual onlyGovernance {
     _updateTimelock(newTimelock);
   }
@@ -249,7 +249,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   // The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
   //
   // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/54b3f14346da01ba0d159114b399197fea8b7cda/contracts/governance/extensions/GovernorTimelockCompound.sol#L186
+  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L189
   function _updateTimelock(IPoolTogetherTimelock newTimelock) private {
     emit TimelockChange(address(_timelock), address(newTimelock));
     _timelock = newTimelock;
