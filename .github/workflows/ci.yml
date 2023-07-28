@@ -29,7 +29,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        fetch-depth: 500
+        with:
+          fetch-depth: 500
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
