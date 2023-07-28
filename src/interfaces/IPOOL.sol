@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity ^0.8.18;
+pragma solidity >=0.8.0;
 
 interface IPOOL {
   event Approval(address indexed owner, address indexed spender, uint256 amount);
@@ -52,4 +52,5 @@ interface IPOOL {
   function totalSupply() external view returns (uint256);
   function transfer(address dst, uint256 rawAmount) external returns (bool);
   function transferFrom(address src, address dst, uint256 rawAmount) external returns (bool);
+  receive() external payable;
 }
