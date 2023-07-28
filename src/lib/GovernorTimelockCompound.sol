@@ -10,6 +10,7 @@
 // https://etherscan.io/address/0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0#code#F1#L306
 // Governor Alpha Timelock interface:
 // https://github.com/compound-finance/compound-protocol/blob/a3214f67b73310d547e00fc578e8355911c9d376/contracts/Governance/GovernorAlpha.sol#L320
+// forgefmt: disable-start
 
 pragma solidity ^0.8.0;
 
@@ -24,17 +25,13 @@ import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
 
 /**
- * @dev Extension of {Governor} that binds the execution process to a Compound Timelock. This adds a
- * delay, enforced by
- * the external timelock to all successful proposal (in addition to the voting duration). The
- * {Governor} needs to be
+ * @dev Extension of {Governor} that binds the execution process to a Compound Timelock. This adds a delay, enforced by
+ * the external timelock to all successful proposal (in addition to the voting duration). The {Governor} needs to be
  * the admin of the timelock for any operation to be performed. A public, unrestricted,
  * {GovernorTimelockCompound-__acceptAdmin} is available to accept ownership of the timelock.
  *
- * Using this model means the proposal will be operated by the {TimelockController} and not by the
- * {Governor}. Thus,
- * the assets and permissions must be attached to the {TimelockController}. Any asset sent to the
- * {Governor} will be
+ * Using this model means the proposal will be operated by the {TimelockController} and not by the {Governor}. Thus,
+ * the assets and permissions must be attached to the {TimelockController}. Any asset sent to the {Governor} will be
  * inaccessible.
  *
  * _Available since v4.3._
@@ -47,10 +44,10 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
     Timers.Timestamp timer;
   }
 
-  // The interface for this variable was changed to conform to the PoolTogether Timelock interface.
-  //
-  // Original openzeppelin:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L31
+  /// @dev The interface for this variable was changed to conform to the PoolTogether Timelock interface.
+  ///
+  /// Original openzeppelin:
+  /// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L31
   IPoolTogetherTimelock private _timelock;
 
   mapping(uint256 => ProposalTimelock) private _proposalTimelocks;
@@ -62,12 +59,11 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
 
   /**
    * @dev Set the timelock.
+   * @dev The timelock interface was changed from the original Openzeppelin source to conform to the PoolTogether interface.
+   *
+   * Original Openzeppelin source:
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L43
    */
-  // The timelock interface was changed from the original Openzeppelin source to conform to the
-  // PoolTogether interface.
-  //
-  // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L43
   constructor(IPoolTogetherTimelock timelockAddress) {
     _updateTimelock(timelockAddress);
   }
@@ -87,14 +83,12 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   }
 
   /**
-   * @dev Overridden version of the {Governor-state} function with added support for the `Queued`
-   * and `Expired` status.
+   * @dev Overridden version of the {Governor-state} function with added support for the `Queued` and `Expired` status.
+   * @dev The _timelock.gracePeriod() was changed from _timelock.GRACE_PERIOD() in the original Openzeppelin contract.
+   *
+   * Original Openzeppelin source:
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L67
    */
-  // The _timelock.gracePeriod() was changed from _timelock.GRACE_PERIOD() in the original
-  // Openzeppelin contract.
-  //
-  // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L67
   function state(uint256 proposalId)
     public
     view
@@ -168,10 +162,8 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   ) internal virtual override {
     uint256 eta = proposalEta(proposalId);
     require(eta > 0, "GovernorTimelockCompound: proposal not yet queued");
-    // In the original contract, the _timelock is not casted to an address. Failing to cast it
-    // causes a compile error "Explicit type conversion not allowed from "contract
-    // IPoolTogetherTimelock"
-    // to "address payable".". We explicitly cast to an address to solve this error.
+    // In the original contract, the _timelock is not casted to an address. Failing to cast it causes a compile error "Explicit type conversion not allowed from "contract IPoolTogetherTimelock" to "address payable".".
+    // We explicitly cast to an address to solve this error.
     //
     // Original Openzeppelin line:
     // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L128
@@ -182,8 +174,7 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   }
 
   /**
-   * @dev Overridden version of the {Governor-_cancel} function to cancel the timelocked proposal if
-   * it as already
+   * @dev Overridden version of the {Governor-_cancel} function to cancel the timelocked proposal if it as already 
    * been queued.
    */
   function _cancel(
@@ -221,35 +212,33 @@ abstract contract GovernorTimelockCompound is IGovernorTimelock, Governor {
   }
 
   /**
-   * @dev Public endpoint to update the underlying timelock instance. Restricted to the timelock
-   * itself, so updates
+   * @dev Public endpoint to update the underlying timelock instance. Restricted to the timelock itself, so updates
    * must be proposed, scheduled, and executed through governance proposals.
    *
-   * For security reasons, the timelock must be handed over to another admin before setting up a new
-   * one. The two
+   * For security reasons, the timelock must be handed over to another admin before setting up a new one. The two
    * operations (hand over the timelock) and do the update can be batched in a single proposal.
    *
-   * Note that if the timelock admin has been handed over in a previous operation, we refuse updates
-   * made through the
-   * timelock if admin of the timelock has already been accepted and the operation is executed
-   * outside the scope of
+   * Note that if the timelock admin has been handed over in a previous operation, we refuse updates made through the
+   * timelock if admin of the timelock has already been accepted and the operation is executed outside the scope of
    * governance.
+
+   * CAUTION: It is not recommended to change the timelock while there are other queued governance proposals.
+   * @dev The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
    *
-   * CAUTION: It is not recommended to change the timelock while there are other queued governance
-   * proposals.
+   * Original Openzeppelin source:
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L185
    */
-  // The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
-  //
-  // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L185
   function updateTimelock(IPoolTogetherTimelock newTimelock) external virtual onlyGovernance {
     _updateTimelock(newTimelock);
   }
 
-  // The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
-  //
-  // Original Openzeppelin source:
-  // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L189
+
+  /**
+   * @dev The interface for `newTimelock` was changed to conform to the PoolTogether Timelock interface.
+   *
+   * Original Openzeppelin source:
+   * https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L189
+   */
   function _updateTimelock(IPoolTogetherTimelock newTimelock) private {
     emit TimelockChange(address(_timelock), address(newTimelock));
     _timelock = newTimelock;

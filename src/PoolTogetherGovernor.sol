@@ -72,16 +72,6 @@ contract PoolTogetherGovernor is
   {
     return GovernorTimelockCompound.supportsInterface(interfaceId);
   }
-  /// @dev We override this for it to show up in our scopelint spec
-
-  function propose(
-    address[] memory targets,
-    uint256[] memory values,
-    bytes[] memory calldatas,
-    string memory description
-  ) public override(Governor, IGovernor) returns (uint256) {
-    return Governor.propose(targets, values, calldatas, description);
-  }
 
   /// @dev We override this function to resolve ambiguity between inherited contracts.
   function castVoteWithReasonAndParamsBySig(
