@@ -72,3 +72,43 @@ the private key of an address that has sufficient POOL Token delegation to have 
 ```bash
 forge script script/Propose.s.sol --sig "run(address)" NEW_GOVERNOR_ADDRESS --rpc-url http://localhost:8545 --broadcast
 ```
+
+### Non-standard Governor changes
+
+When upgrading PoolTogether's Alpha Governor implementation there were a couple areas there were a couple areas where we needed to fallback on non-standard implementations.
+
+#### Timelock
+
+PoolTogether's timelock is not compatible with Openzeppelin's ICompoundTimelock which is used by `GovernorTimelockCompound`, and is in charge of queuing and executing proposals. Due to this incompatiblity we had to fork the `GovernorTimelockCompound.sol` and change the interface to conform to the PoolTogether interface.
+
+The main issue with the interface is that PoolTogether's contract has a method `gracePeriod` when `ICompoundTimelock` is expecting the method to be called `GRACE_PERIOD`. This is the function that `GovernorTimelockCompound` is using in the `state` method causing us to have to fork the `GovernorTimelockCompound`. Below is a table of all the changes we had to make between the Openzeppelin `GovernorTimelockCompound` and our forked version.
+
+| Change name                           |                                                                                    original                                                                                    |                                                                                                                                                       Changed version |
+| ------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| \_timelock type                       | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L31)  |             [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L54) |
+| Constructor argument type             | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L43)  |             [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L71) |
+| state grace period call               | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L67)  |            [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L111) |
+| Cast timelock to address              | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L128) | [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L177C1-L177C174) |
+| Update updateTimelock function args   | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L185) |            [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L245) |
+| Update \_updateTimelock function args | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L189) |            [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L252) |
+
+#### Token
+
+In the new Governor we inherit from `GovernorVotesComp` which expects an `ERC20VotesComp` token. The PoolTogether token is missing a few functions in `ERC20VotesComp` which are listed in the table below. The reason we did not fork the openzeppelin contract and use a custom interface was because `GovernorVotesComp` calls a single function `getPriorVotes` which exists on the PoolTogether token.
+
+##### Missing function in POOL token
+
+1. `function DOMAIN_SEPARATOR() external view returns (bytes32);`
+1. `function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);`
+1. `function getPastTotalSupply(uint256 blockNumber) external view returns (uint256);`
+1. `function getPastVotes(address account, uint256 blockNumber) external view returns (uint256);`
+1. `function getVotes(address account) external view returns (uint256);`
+1. `function increaseAllowance(address spender, uint256 addedValue) external returns (bool);`
+1. `function numCheckpoints(address account) external view returns (uint32);`
+1. `function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external;`
+
+##### Functions in POOL with different signature compared with ERC20Votes
+
+- checkpoints
+  - ERC20Votes: `function checkpoints(address account, uint32 pos) external view returns (Checkpoint memory);`
+  - POOL: `function checkpoints(address, uint32) external view returns (uint32 fromBlock, uint96 votes);`
