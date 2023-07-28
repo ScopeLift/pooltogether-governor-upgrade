@@ -49,7 +49,7 @@ jobs:
           )" >> $GITHUB_ENV
 
       - name: Verify flexible voting version
-        run: sh test/verify-dependencies.sh
+        run: sh ./test/verify-dependencies.sh
 
       - name: Run tests
         run: forge test

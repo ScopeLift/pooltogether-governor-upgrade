@@ -75,13 +75,13 @@ forge script script/Propose.s.sol --sig "run(address)" NEW_GOVERNOR_ADDRESS --rp
 
 ### Non-standard Governor changes
 
-When upgrading PoolTogether's Alpha Governor implementation there were a couple areas there were a couple areas where we needed to fallback on non-standard implementations.
+When upgrading PoolTogether's Alpha Governor implementation we needed to fallback on non-standard interfaces.
 
 #### Timelock
 
-PoolTogether's timelock is not compatible with Openzeppelin's ICompoundTimelock which is used by `GovernorTimelockCompound`, and is in charge of queuing and executing proposals. Due to this incompatiblity we had to fork the `GovernorTimelockCompound.sol` and change the interface to conform to the PoolTogether interface.
+PoolTogether's timelock is not compatible with Openzeppelin's `ICompoundTimelock` which is used by `GovernorTimelockCompound`, and is in charge of queuing and executing proposals. Due to this incompatibility we had to fork the `GovernorTimelockCompound.sol` and change the interface to conform to the PoolTogether interface.
 
-The main issue with the interface is that PoolTogether's contract has a method `gracePeriod` when `ICompoundTimelock` is expecting the method to be called `GRACE_PERIOD`. This is the function that `GovernorTimelockCompound` is using in the `state` method causing us to have to fork the `GovernorTimelockCompound`. Below is a table of all the changes we had to make between the Openzeppelin `GovernorTimelockCompound` and our forked version.
+The main issue with the interface is that PoolTogether's contract has a method `gracePeriod` when `ICompoundTimelock` is expecting the method to be called `GRACE_PERIOD`. This function is used in `GovernorTimelockCompound`'s `state` method and caused us to have to fork the `GovernorTimelockCompound`. Below is a table of all the changes we had to make between the Openzeppelin `GovernorTimelockCompound` and our forked version.
 
 | Change name                           |                                                                                    original                                                                                    |                                                                                                                                                       Changed version |
 | ------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
@@ -94,9 +94,9 @@ The main issue with the interface is that PoolTogether's contract has a method `
 
 #### Token
 
-In the new Governor we inherit from `GovernorVotesComp` which expects an `ERC20VotesComp` token. The PoolTogether token is missing a few functions in `ERC20VotesComp` which are listed in the table below. The reason we did not fork the openzeppelin contract and use a custom interface was because `GovernorVotesComp` calls a single function `getPriorVotes` which exists on the PoolTogether token.
+In the new Governor we inherit from `GovernorVotesComp` which expects an `ERC20VotesComp` token. The PoolTogether token is missing a few functions that exist in `ERC20VotesComp` and we have listed those missing functions below. The reason we did not fork the Openzeppelin contract and use a custom interface was because `GovernorVotesComp` calls a single function `getPriorVotes` which exists on the PoolTogether token.
 
-##### Missing function in POOL token
+##### Missing functions in POOL
 
 1. `function DOMAIN_SEPARATOR() external view returns (bytes32);`
 1. `function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);`
@@ -107,7 +107,7 @@ In the new Governor we inherit from `GovernorVotesComp` which expects an `ERC20V
 1. `function numCheckpoints(address account) external view returns (uint32);`
 1. `function permit(address owner, address spender, uint256 value, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external;`
 
-##### Functions in POOL with different signature compared with ERC20Votes
+##### Functions in POOL with a different signature compared with ERC20Votes
 
 - checkpoints
   - ERC20Votes: `function checkpoints(address account, uint32 pos) external view returns (Checkpoint memory);`
