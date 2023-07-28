@@ -48,6 +48,9 @@ jobs:
             echo $(($EPOCHSECONDS - $EPOCHSECONDS % 604800))
           )" >> $GITHUB_ENV
 
+      - name: Verify flexible voting version
+        run: sh test/verify-dependencies.sh
+
       - name: Run tests
         run: forge test
 
