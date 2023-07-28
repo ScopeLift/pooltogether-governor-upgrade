@@ -73,7 +73,6 @@ contract PoolTogetherGovernor is
     return GovernorTimelockCompound.supportsInterface(interfaceId);
   }
   /// @dev We override this for it to show up in our scopelint spec
-
   function propose(
     address[] memory targets,
     uint256[] memory values,
