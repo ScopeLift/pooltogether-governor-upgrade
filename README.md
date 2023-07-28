@@ -1,4 +1,4 @@
-# PoolTogether Governor Bravo
+# PoolTogether Governor Bravo Upgrade
 
 An upgrade to a "Bravo" compatible Governor for the PoolTogether DAO, built using the OpenZeppelin implemented and [Flexible Voting](https://github.com/ScopeLift/flexible-voting).
 
@@ -112,3 +112,7 @@ In the new Governor we inherit from `GovernorVotesComp` which expects an `ERC20V
 - checkpoints
   - ERC20Votes: `function checkpoints(address account, uint32 pos) external view returns (Checkpoint memory);`
   - POOL: `function checkpoints(address, uint32) external view returns (uint32 fromBlock, uint96 votes);`
+
+### Testing issues
+
+This repo heavily leverages fuzz fork tests causing a significant number of RPC requests to be made. We leverage caching to minimize the number of RPC calls after the tests are run for the first time, but running these tests for the first may cause timeouts and consume a significant number of RPC calls.
