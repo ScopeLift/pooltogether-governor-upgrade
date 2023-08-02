@@ -107,9 +107,14 @@ The main issue with the interface is that PoolTogether's contract has a method `
 | Update updateTimelock function args   | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L185) |            [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L245) |
 | Update \_updateTimelock function args | [here](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/49c0e4370d0cc50ea6090709e3835a3091e33ee2/contracts/governance/extensions/GovernorTimelockCompound.sol#L189) |            [here](https://github.com/ScopeLift/pooltogether-governor-upgrade/blob/ad4276bc960a414db2244cf482683cf4da07bf70/src/lib/GovernorTimelockCompound.sol#L252) |
 
+
+A full diff of the two contracts can be found [here](https://www.diffchecker.com/EyE5XQDS/)
+
 #### Token
 
 In the new Governor we inherit from `GovernorVotesComp` which expects an `ERC20VotesComp` token. The PoolTogether token is missing a few functions that exist in `ERC20VotesComp` and we have listed those missing functions below. The reason we did not fork the Openzeppelin contract and use a custom interface was because `GovernorVotesComp` calls a single function `getPriorVotes` which exists on the PoolTogether token.
+
+A full diff of the two contracts can be found [here](https://www.diffchecker.com/m7hUJqn8/)
 
 ##### Missing functions in POOL
 
