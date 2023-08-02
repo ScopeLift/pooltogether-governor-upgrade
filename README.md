@@ -44,6 +44,21 @@ scopelint fmt
 scopelint check
 ```
 
+#### Scopelint spec compatibility
+
+Some tests will not show up when running `scopelint spec` because the methods they are testing are inherited in the `PoolTogetherGovernor`. In order to get an accurate picture of the tests with `scopelint spec` add an explicit `propose` method to the `PoolTogetherGoverno`r. It should look something like:
+
+```
+ function propose(
+    address[] memory targets,
+    uint256[] memory values,
+    bytes[] memory calldatas,
+    string memory description
+  ) public override(Governor, IGovernor) returns (uint256) {
+    return Governor.propose(targets, values, calldatas, description);
+  }
+```
+
 ## Scripts
 
 - `script/Deploy.s.sol` - Deploys the PoolTogetherGovernor contract
