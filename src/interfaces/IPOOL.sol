@@ -52,4 +52,5 @@ interface IPOOL {
   function totalSupply() external view returns (uint256);
   function transfer(address dst, uint256 rawAmount) external returns (bool);
   function transferFrom(address src, address dst, uint256 rawAmount) external returns (bool);
+  receive() external payable;
 }
