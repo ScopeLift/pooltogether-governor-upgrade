@@ -17,7 +17,7 @@ import {IStakePrizePool} from "test/interfaces/IStakePrizePool.sol";
 import {IV3MultipleWinners} from "test/interfaces/IV3MultipleWinners.sol";
 import {IERC721} from "forge-std/interfaces/IERC721.sol";
 
-contract Constructor is PoolTogetherGovernorTest {
+abstract contract Constructor is PoolTogetherGovernorTest {
   function testFuzz_CorrectlySetsAllConstructorArgs(uint256 _blockNumber) public {
     assertEq(governorBravo.name(), "PoolTogether Governor Bravo");
     assertEq(address(governorBravo.token()), POOL_TOKEN);
@@ -36,7 +36,7 @@ contract Constructor is PoolTogetherGovernorTest {
   }
 }
 
-contract Propose is ProposalTest {
+abstract contract Propose is ProposalTest {
   function test_GovernorUpgradeProposalIsSubmittedCorrectly() public {
     // Proposal has been recorded
     assertEq(governorAlpha.proposalCount(), initialProposalCount + 1);
@@ -912,7 +912,7 @@ contract Propose is ProposalTest {
   }
 }
 
-contract CastVoteWithReasonAndParams is ProposalTest {
+abstract contract CastVoteWithReasonAndParams is ProposalTest {
   using FixedPointMathLib for uint256;
 
   // Store the id of a new proposal unrelated to governor upgrade.
@@ -1134,7 +1134,7 @@ contract CastVoteWithReasonAndParams is ProposalTest {
   }
 }
 
-contract _Execute is ProposalTest {
+abstract contract _Execute is ProposalTest {
   function setUp() public virtual override(ProposalTest) {
     ProposalTest.setUp();
     _upgradeToBravoGovernor();
@@ -1417,5 +1417,57 @@ contract _Execute is ProposalTest {
       currentVotes + 506_647_255_990_808_587_266_180,
       "New delegate current votes"
     );
+  }
+}
+
+// Run the tests using the deployed Governor Bravo
+
+contract ConstructorTestWithOnchainGovernor is Constructor {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return true;
+  }
+}
+
+contract ProposeTestWithOnchainGovernor is Propose {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return true;
+  }
+}
+
+contract CastVoteWithReasonAndParamsTestWithOnchainGovernor is CastVoteWithReasonAndParams {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return true;
+  }
+}
+
+contract _ExecuteTestWithOnchainGovernor is _Execute {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return true;
+  }
+}
+
+// Run the tests using a version of the Governor deployed by the Deploy script
+
+contract ConstructorTestWithDeployScriptGovernor is Constructor {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return false;
+  }
+}
+
+contract ProposeTestWithDeployScriptGovernor is Propose {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return false;
+  }
+}
+
+contract CastVoteWithReasonAndParamsTestWithDeployScriptGovernor is CastVoteWithReasonAndParams {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return false;
+  }
+}
+
+contract _ExecuteTestWithDeployScriptGovernor is _Execute {
+  function _useDeployedGovernorBravo() internal pure override returns (bool) {
+    return false;
   }
 }

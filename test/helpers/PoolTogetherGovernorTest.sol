@@ -28,7 +28,7 @@ abstract contract PoolTogetherGovernorTest is Test, DeployInput, Constants {
   function setUp() public virtual {
     // The latest block when this test was written. If you update the fork block
     // make sure to also update the top 6 delegates below.
-    uint256 _forkBlock = 17_665_572;
+    uint256 _forkBlock = 17_837_208;
     vm.createSelectFork(vm.rpcUrl("mainnet"), _forkBlock);
 
     // Taken from https://www.tally.xyz/gov/pooltogether/delegates?sort=voting_power_desc.
@@ -52,9 +52,18 @@ abstract contract PoolTogetherGovernorTest is Test, DeployInput, Constants {
       delegates.push(_delegate);
     }
 
-    // Use deployed governor once it is deployed
-    Deploy _deployScript = new Deploy();
-    _deployScript.setUp();
-    governorBravo = _deployScript.run();
+    if (_useDeployedGovernorBravo()) {
+      // The PoolTogether contract was deployed to mainnet on August 3rd, 2023
+      // using Deploy in this repo.
+      governorBravo = PoolTogetherGovernor(payable(DEPLOYED_BRAVO_GOVERNOR));
+    } else {
+      // We still want to exercise the script in these tests to give us
+      // confidence that we could deploy again if necessary.
+      Deploy _deployScript = new Deploy();
+      _deployScript.setUp();
+      governorBravo = _deployScript.run();
+    }
   }
+
+  function _useDeployedGovernorBravo() internal virtual returns (bool);
 }
