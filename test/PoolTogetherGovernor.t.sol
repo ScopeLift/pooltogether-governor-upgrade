@@ -1399,6 +1399,7 @@ abstract contract _Execute is ProposalTest {
     string memory _description = "Set comp like delegate";
     ERC20VotesComp token = ERC20VotesComp(POOL_TOKEN);
     uint256 currentVotes = token.getCurrentVotes(newDelegate);
+    uint256 stakePoolBalance = token.balanceOf(STAKE_PRIZE_POOL);
 
     ProposalBuilder proposals = new ProposalBuilder();
     proposals.add(
@@ -1414,7 +1415,7 @@ abstract contract _Execute is ProposalTest {
     uint256 newDelegateCurrentVotes = token.getCurrentVotes(newDelegate);
     assertEq(
       newDelegateCurrentVotes,
-      currentVotes + 506_647_255_990_808_587_266_180,
+      currentVotes + stakePoolBalance,
       "New delegate current votes"
     );
   }
