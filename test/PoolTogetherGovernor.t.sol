@@ -1413,11 +1413,7 @@ abstract contract _Execute is ProposalTest {
 
     vm.warp(10);
     uint256 newDelegateCurrentVotes = token.getCurrentVotes(newDelegate);
-    assertEq(
-      newDelegateCurrentVotes,
-      currentVotes + stakePoolBalance,
-      "New delegate current votes"
-    );
+    assertEq(newDelegateCurrentVotes, currentVotes + stakePoolBalance, "New delegate current votes");
   }
 }
 
