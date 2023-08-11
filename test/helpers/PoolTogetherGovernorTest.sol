@@ -28,7 +28,7 @@ abstract contract PoolTogetherGovernorTest is Test, DeployInput, Constants {
   function setUp() public virtual {
     // The latest block when this test was written. If you update the fork block
     // make sure to also update the top 6 delegates below.
-    uint256 _forkBlock = 17_837_208;
+    uint256 _forkBlock = 17_892_867;
     vm.createSelectFork(vm.rpcUrl("mainnet"), _forkBlock);
 
     // Taken from https://www.tally.xyz/gov/pooltogether/delegates?sort=voting_power_desc.
