@@ -2,8 +2,7 @@
 pragma solidity ^0.8.18;
 
 contract DeployInput {
-  // TODO Reach out to PoolTogether and update these numbers based on what they want.
-  uint256 constant INITIAL_VOTING_DELAY = 3600; // 12 hours
-  uint256 constant INITIAL_VOTING_PERIOD = 28_800;
-  uint256 constant INITIAL_PROPOSAL_THRESHOLD = 10_000e18;
+  uint256 constant INITIAL_VOTING_DELAY = 7200; // 24 hours
+  uint256 constant INITIAL_VOTING_PERIOD = 28_800; // matches existing config
+  uint256 constant INITIAL_PROPOSAL_THRESHOLD = 10_000e18; // matches existing config
 }
