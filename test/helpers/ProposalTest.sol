@@ -6,7 +6,7 @@ import {ICompoundTimelock} from
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {IGovernor} from "@openzeppelin/contracts/governance/IGovernor.sol";
 
-import {Propose} from "script/Propose.s.sol";
+import {TestableProposeScript} from "test/helpers/TestableProposeScript.sol";
 import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 import {PoolTogetherGovernorTest} from "test/helpers/PoolTogetherGovernorTest.sol";
 
@@ -34,10 +34,20 @@ abstract contract ProposalTest is PoolTogetherGovernorTest {
   function setUp() public virtual override {
     PoolTogetherGovernorTest.setUp();
 
-    initialProposalCount = governorAlpha.proposalCount();
+    if (_useDeployedGovernorBravo()) {
+      // Use the actual live proposal data put on chain by lonser.eth on August 16th, 2023
+      upgradeProposalId = 79;
+      // Since the proposal was already submitted, the count before its submissions is one less
+      initialProposalCount = governorAlpha.proposalCount() - 1;
+    } else {
+      initialProposalCount = governorAlpha.proposalCount();
 
-    Propose _proposeScript = new Propose();
-    upgradeProposalId = _proposeScript.run(governorBravo);
+      TestableProposeScript _proposeScript = new TestableProposeScript();
+      // We override the deployer to use an alternate delegate, because in this context,
+      // lonser.eth already has a live proposal
+      _proposeScript.overrideProposerForTests(0xFFb032E27b70DfAD518753BAAa77040F64df9840);
+      upgradeProposalId = _proposeScript.run(governorBravo);
+    }
   }
 
   //--------------- HELPERS ---------------//

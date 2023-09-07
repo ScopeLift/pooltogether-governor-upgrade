@@ -11,7 +11,7 @@ import {IGovernorAlpha} from "src/interfaces/IGovernorAlpha.sol";
 contract Propose is Script {
   IGovernorAlpha constant GOVERNOR_ALPHA =
     IGovernorAlpha(0xB3a87172F555ae2a2AB79Be60B336D2F7D0187f0);
-  address constant PROPOSER = 0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27; // lonser.eth
+  address PROPOSER = 0xe0e7b7C5aE92Fe94D2ae677D81214D6Ad7A11C27; // lonser.eth
 
   function propose(PoolTogetherGovernor _newGovernor) internal returns (uint256 _proposalId) {
     address[] memory _targets = new address[](2);
